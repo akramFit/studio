@@ -15,6 +15,7 @@ const AboutSection = () => {
               width={600}
               height={700}
               className="rounded-lg object-cover shadow-xl relative"
+              data-ai-hint="portrait coach"
             />
           </div>
           <div className="flex flex-col gap-6">
