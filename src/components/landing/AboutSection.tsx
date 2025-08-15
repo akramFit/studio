@@ -10,7 +10,7 @@ const AboutSection = () => {
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
             <Image
-              src="https://placehold.co/600x700.png"
+              src="/coach-profile.jpg"
               alt="Coach Akram"
               width={600}
               height={700}
