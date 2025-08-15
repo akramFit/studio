@@ -3,10 +3,11 @@
 // Firebase project configuration.
 
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyAMJz2BPiOxQana4fnFcJ1uyXqJMn0WfyM",
+  authDomain: "akramfit-ba687.firebaseapp.com",
+  projectId: "akramfit-ba687",
+  storageBucket: "akramfit-ba687.appspot.com",
+  messagingSenderId: "989866224138",
+  appId: "1:989866224138:web:833fedbeedc8bb18458df3",
+  measurementId: "G-Y8CCZN9LKL"
 };
