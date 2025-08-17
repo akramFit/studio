@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 // A simplified approach for admin check without custom claims, as requested.
 // In a production app, use Firebase Custom Claims for robust role management.
@@ -54,20 +54,40 @@ export const withAdminAuth = <P extends object>(Component: React.ComponentType<P
   const AuthenticatedComponent = (props: P) => {
     const { user, isAdmin, loading } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
-      if (!loading && (!user || !isAdmin)) {
-        router.push('/login');
-      }
-    }, [user, isAdmin, loading, router]);
+      if (loading) return;
 
-    if (loading || !user || !isAdmin) {
+      const isAuthPage = pathname === '/login';
+      
+      if (!user || !isAdmin) {
+        if (!isAuthPage) {
+          router.push('/login');
+        }
+      } else {
+        if (isAuthPage) {
+          router.push('/admin');
+        }
+      }
+    }, [user, isAdmin, loading, router, pathname]);
+
+    if (loading) {
       return (
         <div className="flex h-screen items-center justify-center">
           <div className="h-16 w-16 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
         </div>
       );
     }
+    
+    // Allow rendering login page without being authenticated
+    if (!user || !isAdmin) {
+        if (pathname === '/login') {
+            return <Component {...props} />;
+        }
+        return null; // or a loader
+    }
+
 
     return <Component {...props} />;
   };
