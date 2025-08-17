@@ -52,17 +52,17 @@ const PricingSection = () => {
 
 
   return (
-    <section id="pricing" className="py-20 md:py-32 bg-white">
+    <section id="pricing" className="py-20 md:py-32 bg-card">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-headline font-bold text-foreground">Choose Your Transformation Plan</h2>
+          <h2 className="text-3xl md:text-4xl font-headline font-bold text-card-foreground">Choose Your Transformation Plan</h2>
           <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Invest in yourself. Flexible plans designed for serious results.</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
           {loading ? (
             Array.from({ length: 3 }).map((_, index) => (
-              <Card key={index} className="flex flex-col shadow-lg">
+              <Card key={index} className="flex flex-col shadow-lg bg-background/50">
                 <CardHeader className="items-center text-center">
                   <Skeleton className="h-16 w-16 rounded-full mb-4" />
                   <Skeleton className="h-8 w-40" />
@@ -84,7 +84,7 @@ const PricingSection = () => {
               const Icon = iconMap[plan.name] || Dumbbell;
               const priceUSD = Math.round(plan.price * DZD_TO_USD_RATE);
               return (
-                <Card key={plan.id} className={cn(`flex flex-col shadow-lg transition-transform hover:scale-105 relative`, plan.mostPopular && "border-primary shadow-primary/20")}>
+                <Card key={plan.id} className={cn(`flex flex-col shadow-lg transition-transform hover:scale-105 relative bg-background/50`, plan.mostPopular && "border-primary shadow-primary/20")}>
                    {plan.mostPopular && (
                     <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground">
                       <Star className="mr-1 h-3 w-3" />

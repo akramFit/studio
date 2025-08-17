@@ -138,7 +138,7 @@ const GalleryPage = () => {
             {galleryItems.map(item => (
                 <div key={item.id} className="group relative border rounded-lg overflow-hidden shadow">
                 <Image src={item.imageURL} alt={item.caption} width={400} height={400} className="object-cover w-full h-60" />
-                <div className="p-4 bg-white">
+                <div className="p-4 bg-card">
                   {editingItemId === item.id ? (
                     <div className="flex items-center gap-2">
                       <Input value={editedCaption} onChange={(e) => setEditedCaption(e.target.value)} className="h-8" />

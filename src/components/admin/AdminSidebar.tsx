@@ -43,7 +43,7 @@ const AdminSidebar = () => {
   };
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-white border-r flex flex-col">
+    <aside className="w-64 flex-shrink-0 bg-card border-r flex flex-col">
       <div className="h-20 flex items-center justify-center px-6 border-b">
         <Link href="/admin" className="flex items-center gap-2">
           <Dumbbell className="h-8 w-8 text-primary" />

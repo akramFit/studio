@@ -52,7 +52,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <Link href="/" className="flex items-center justify-center gap-2 mb-4" aria-label="Akram Training Hub Home">

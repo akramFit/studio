@@ -100,7 +100,7 @@ const ProgramGenerator = ({ client }: { client: Client }) => {
         {generatedProgram && (
           <div className="space-y-4 pt-4 border-t">
             <h3 className="font-semibold">Generated Program:</h3>
-            <Textarea value={generatedProgram} readOnly rows={15} className="font-mono text-xs bg-gray-50"/>
+            <Textarea value={generatedProgram} readOnly rows={15} className="font-mono text-xs bg-muted"/>
             <div className="flex gap-2">
                 <Button onClick={handleDownloadPdf} variant="outline" className="w-full">
                     <FileDown className="mr-2 h-4 w-4" /> Download as PDF
