@@ -25,6 +25,7 @@ const iconMap: { [key: string]: React.ElementType } = {
   "Online VIP": Crown,
 };
 
+const DZD_TO_USD_RATE = 1 / 135; // Approximate conversion rate
 
 const PricingSection = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -78,6 +79,7 @@ const PricingSection = () => {
           ) : (
             plans.map((plan, index) => {
               const Icon = iconMap[plan.name] || Dumbbell;
+              const priceUSD = Math.round(plan.price * DZD_TO_USD_RATE);
               return (
                 <Card key={plan.id} className={`flex flex-col shadow-lg transition-transform hover:scale-105`}>
                   <CardHeader className="items-center text-center">
@@ -101,6 +103,7 @@ const PricingSection = () => {
                     <div className="text-center mb-4">
                         <span className="text-2xl font-bold">{plan.price} DZD</span>
                         <span className="text-sm text-muted-foreground">/ month</span>
+                        <p className="text-xs text-muted-foreground">(approx. ${priceUSD} USD)</p>
                     </div>
                     <Button asChild className="w-full" size="lg">
                       <Link href="#subscription-form">Get Started</Link>
