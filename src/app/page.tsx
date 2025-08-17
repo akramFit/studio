@@ -6,6 +6,7 @@ import Footer from '@/components/shared/Footer';
 
 const AboutSection = dynamic(() => import('@/components/landing/AboutSection'), {
   loading: () => <Skeleton className="h-[500px] w-full" />,
+  ssr: false,
 });
 const AchievementsSection = dynamic(() => import('@/components/landing/AchievementsSection'), {
   loading: () => <Skeleton className="h-[600px] w-full" />,

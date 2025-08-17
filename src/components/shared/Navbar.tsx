@@ -50,7 +50,7 @@ const Navbar = () => {
             </Link>
           ))}
           <Button asChild variant="outline">
-            <Link href="/login">Admin Login</Link>
+            <Link href="/login">Admin</Link>
           </Button>
         </nav>
         <div className="md:hidden">
@@ -73,7 +73,7 @@ const Navbar = () => {
                   </Link>
                 ))}
                 <Button asChild className="mt-4">
-                  <Link href="/login">Admin Login</Link>
+                  <Link href="/login">Admin</Link>
                 </Button>
               </div>
             </SheetContent>
