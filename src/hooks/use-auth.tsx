@@ -1,38 +1,61 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { User as FirebaseAuthUser, onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { useRouter, usePathname } from 'next/navigation';
 
-// A simplified approach for admin check without custom claims, as requested.
-// In a production app, use Firebase Custom Claims for robust role management.
-const ADMIN_EMAILS = ['akram-coach@demo.com'];
+interface UserProfile {
+  uid: string;
+  email: string;
+  displayName?: string;
+  role?: 'admin' | 'user';
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: FirebaseAuthUser | null;
+  userProfile: UserProfile | null;
   isAdmin: boolean;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  userProfile: null,
   isAdmin: false,
   loading: true,
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseAuthUser | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        setIsAdmin(ADMIN_EMAILS.includes(user.email || ''));
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        // Check for admin role in Firestore
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const profile = userDocSnap.data() as UserProfile;
+          setUserProfile(profile);
+          if (profile.role === 'admin') {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
+        } else {
+          // Fallback for user not in 'users' collection or if collection doesn't exist
+          setIsAdmin(false); 
+          setUserProfile({ uid: firebaseUser.uid, email: firebaseUser.email! });
+        }
       } else {
         setUser(null);
+        setUserProfile(null);
         setIsAdmin(false);
       }
       setLoading(false);
@@ -41,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  const value = { user, isAdmin, loading };
+  const value = { user, userProfile, isAdmin, loading };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
