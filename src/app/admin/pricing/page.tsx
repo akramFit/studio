@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -28,11 +29,11 @@ interface Plan extends z.infer<typeof planSchema> {
 }
 
 const PricingPage = () => {
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+  const [plans, setPlans] = React.useState<Plan[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [editingPlan, setEditingPlan] = React.useState<Plan | null>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof planSchema>>({
@@ -40,7 +41,7 @@ const PricingPage = () => {
     defaultValues: { name: "", price: 0, durationDays: 30, features: "" },
   });
 
-  const fetchPlans = useCallback(async () => {
+  const fetchPlans = React.useCallback(async () => {
     setLoading(true);
     try {
       const q = query(collection(db, "pricing"), orderBy("durationDays"));
@@ -61,7 +62,7 @@ const PricingPage = () => {
     }
   }, [toast]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchPlans();
   }, [fetchPlans]);
 
@@ -136,7 +137,7 @@ const PricingPage = () => {
                                     <FormItem><FormLabel>Plan Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
                                 <FormField control={form.control} name="price" render={({ field }) => (
-                                    <FormItem><FormLabel>Price ($)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Price (DZD)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
                                  <FormField control={form.control} name="durationDays" render={({ field }) => (
                                     <FormItem><FormLabel>Duration (Days)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
