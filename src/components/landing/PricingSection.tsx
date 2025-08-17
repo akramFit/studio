@@ -6,9 +6,11 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Dumbbell, Crown } from 'lucide-react';
+import { Check, Dumbbell, Crown, Star } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface Plan {
   id: string;
@@ -17,6 +19,7 @@ interface Plan {
   description?: string;
   features: string[];
   durationDays: number;
+  mostPopular?: boolean;
 }
 
 const iconMap: { [key: string]: React.ElementType } = {
@@ -81,8 +84,14 @@ const PricingSection = () => {
               const Icon = iconMap[plan.name] || Dumbbell;
               const priceUSD = Math.round(plan.price * DZD_TO_USD_RATE);
               return (
-                <Card key={plan.id} className={`flex flex-col shadow-lg transition-transform hover:scale-105`}>
-                  <CardHeader className="items-center text-center">
+                <Card key={plan.id} className={cn(`flex flex-col shadow-lg transition-transform hover:scale-105 relative`, plan.mostPopular && "border-primary shadow-primary/20")}>
+                   {plan.mostPopular && (
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground">
+                      <Star className="mr-1 h-3 w-3" />
+                      Most Popular
+                    </Badge>
+                  )}
+                  <CardHeader className="items-center text-center pt-8">
                     <div className="p-4 bg-primary/10 rounded-full mb-4">
                       <Icon className="h-8 w-8 text-primary" />
                     </div>
@@ -105,7 +114,7 @@ const PricingSection = () => {
                         <span className="text-sm text-muted-foreground">/ month</span>
                         <p className="text-xs text-muted-foreground">(approx. ${priceUSD} USD)</p>
                     </div>
-                    <Button asChild className="w-full" size="lg">
+                    <Button asChild className={cn("w-full", plan.mostPopular && "bg-accent hover:bg-accent/90")} size="lg">
                       <Link href="#subscription-form">Get Started</Link>
                     </Button>
                   </CardFooter>

@@ -14,13 +14,17 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Trash2, Edit, PlusCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Trash2, Edit, PlusCircle, Loader2, RefreshCw, Star } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+
 
 const planSchema = z.object({
   name: z.string().min(2, "Name is required."),
   price: z.coerce.number().min(0, "Price must be a positive number."),
   durationDays: z.coerce.number().int().min(1, "Duration must be at least 1 day."),
   features: z.string().min(10, "Features description is too short."),
+  mostPopular: z.boolean().default(false).optional(),
 });
 
 interface Plan extends z.infer<typeof planSchema> {
@@ -38,7 +42,7 @@ const PricingPage = () => {
 
   const form = useForm<z.infer<typeof planSchema>>({
     resolver: zodResolver(planSchema),
-    defaultValues: { name: "", price: 0, durationDays: 30, features: "" },
+    defaultValues: { name: "", price: 0, durationDays: 30, features: "", mostPopular: false },
   });
 
   const fetchPlans = React.useCallback(async () => {
@@ -74,7 +78,7 @@ const PricingPage = () => {
   
   const openNewDialog = () => {
     setEditingPlan(null);
-    form.reset({ name: "", price: 0, durationDays: 30, features: "" });
+    form.reset({ name: "", price: 0, durationDays: 30, features: "", mostPopular: false });
     setIsDialogOpen(true);
   };
 
@@ -147,6 +151,20 @@ const PricingPage = () => {
                                 <FormField control={form.control} name="features" render={({ field }) => (
                                     <FormItem><FormLabel>Features (one per line)</FormLabel><FormControl><Textarea {...field} rows={5} /></FormControl><FormMessage /></FormItem>
                                 )}/>
+                                <FormField control={form.control} name="mostPopular" render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                      <div className="space-y-0.5">
+                                        <FormLabel>Most Popular</FormLabel>
+                                        <CardDescription>Highlight this plan on the landing page.</CardDescription>
+                                      </div>
+                                      <FormControl>
+                                        <Switch
+                                          checked={field.value}
+                                          onCheckedChange={field.onChange}
+                                        />
+                                      </FormControl>
+                                    </FormItem>
+                                )}/>
                                 <Button type="submit" disabled={isSubmitting} className="w-full">
                                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                                     Save Plan
@@ -169,10 +187,14 @@ const PricingPage = () => {
               return (
                 <div key={p.id} className="flex items-start justify-between p-4 border rounded-lg">
                   <div>
-                    <h3 className="font-bold">
-                      {p.name} - {p.price} DZD <span className="text-sm font-normal text-muted-foreground">(approx. ${usdPrice} USD)</span>
-                      <span className="font-normal text-muted-foreground text-sm ml-2">({p.durationDays} days)</span>
+                    <h3 className="font-bold flex items-center gap-2">
+                      {p.name}
+                      {p.mostPopular && <Badge variant="default" className="bg-accent text-accent-foreground"><Star className="mr-1 h-3 w-3" /> Most Popular</Badge>}
                     </h3>
+                     <p className="font-semibold text-muted-foreground mt-1">
+                      {p.price} DZD <span className="text-sm font-normal text-muted-foreground">(approx. ${usdPrice} USD)</span>
+                      <span className="font-normal text-muted-foreground text-sm ml-2">({p.durationDays} days)</span>
+                    </p>
                     <ul className="list-disc list-inside text-sm text-muted-foreground mt-2">
                         {p.features.map((f, i) => <li key={i}>{f}</li>)}
                     </ul>
