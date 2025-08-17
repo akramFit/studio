@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -77,7 +78,7 @@ const PricingSection = () => {
                   </ul>
               </CardContent>
               <CardFooter className="flex-col items-stretch pt-6">
-                 <div className="text-center text-4xl font-bold mb-4">{plan.price}</div>
+                 <div className="text-center text-2xl font-bold mb-4">{plan.price}</div>
                 <Button asChild className="w-full" size="lg">
                   <Link href="#subscription-form">{plan.buttonText}</Link>
                 </Button>
