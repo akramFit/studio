@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, getDocs, orderBy, query } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,12 +28,15 @@ const formSchema = z.object({
   preferredPlan: z.string().min(1, "Please select a plan."),
 });
 
-type Plan = { id: string; name: string };
+const plans = [
+    { id: "1", name: "Personal Training" },
+    { id: "2", name: "Online Coaching" },
+    { id: "3", name: "Online VIP" },
+];
 
 const SubscriptionForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [plans, setPlans] = useState<Plan[]>([]);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,22 +47,6 @@ const SubscriptionForm = () => {
       injuriesOrNotes: "",
     },
   });
-
-  useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const plansCollection = collection(db, 'pricing');
-        const q = query(plansCollection, orderBy('durationDays'));
-        const querySnapshot = await getDocs(q);
-        const plansData = querySnapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name } as Plan));
-        setPlans(plansData);
-      } catch (error) {
-        console.error("Error fetching plans: ", error);
-        toast({ title: "Error", description: "Could not load pricing plans.", variant: "destructive" });
-      }
-    };
-    fetchPlans();
-  }, [toast]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
