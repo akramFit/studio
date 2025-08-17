@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -24,8 +25,17 @@ const formSchema = z.object({
   weight: z.coerce.number().min(30, "Weight in kg.").max(300),
   experienceLevel: z.enum(['beginner', 'intermediate', 'advanced']),
   primaryGoal: z.enum(['fat_loss', 'muscle_gain', 'strength', 'other']),
+  otherGoal: z.string().optional(),
   injuriesOrNotes: z.string().optional(),
   preferredPlan: z.string().min(1, "Please select a plan."),
+}).refine(data => {
+    if (data.primaryGoal === 'other') {
+        return data.otherGoal && data.otherGoal.trim().length > 0;
+    }
+    return true;
+}, {
+    message: "Please specify your goal.",
+    path: ['otherGoal'],
 });
 
 const plans = [
@@ -45,14 +55,22 @@ const SubscriptionForm = () => {
       email: "",
       phoneNumber: "",
       injuriesOrNotes: "",
+      otherGoal: "",
     },
   });
+
+  const primaryGoal = form.watch('primaryGoal');
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
+      const dataToSubmit = { ...values };
+      if (dataToSubmit.primaryGoal !== 'other') {
+        delete dataToSubmit.otherGoal;
+      }
+
       await addDoc(collection(db, 'orders'), {
-        ...values,
+        ...dataToSubmit,
         status: 'pending',
         createdAt: serverTimestamp(),
       });
@@ -157,6 +175,26 @@ const SubscriptionForm = () => {
                     </FormItem>
                   )} />
                 </div>
+                
+                {primaryGoal === 'other' && (
+                  <FormField
+                    control={form.control}
+                    name="otherGoal"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Please Specify Your Goal</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g., improve athletic performance, prepare for a specific event..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
                 <FormField control={form.control} name="preferredPlan" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Preferred Plan</FormLabel>
