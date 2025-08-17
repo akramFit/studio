@@ -57,21 +57,26 @@ export const withAdminAuth = <P extends object>(Component: React.ComponentType<P
     const pathname = usePathname();
 
     useEffect(() => {
-      if (loading) return;
+      if (loading) {
+        return; // Wait for auth state to be determined
+      }
 
       const isAuthPage = pathname === '/login';
-      
-      if (!user || !isAdmin) {
-        if (!isAuthPage) {
-          router.push('/login');
+
+      if (user && isAdmin) {
+        // User is authenticated and is an admin
+        if (isAuthPage) {
+          router.push('/admin'); // If on login page, redirect to admin dashboard
         }
       } else {
-        if (isAuthPage) {
-          router.push('/admin');
+        // User is not authenticated or not an admin
+        if (!isAuthPage) {
+          router.push('/login'); // If not on login page, redirect there
         }
       }
     }, [user, isAdmin, loading, router, pathname]);
 
+    // Render a loading state while checking authentication
     if (loading) {
       return (
         <div className="flex h-screen items-center justify-center">
@@ -80,16 +85,13 @@ export const withAdminAuth = <P extends object>(Component: React.ComponentType<P
       );
     }
     
-    // Allow rendering login page without being authenticated
-    if (!user || !isAdmin) {
-        if (pathname === '/login') {
-            return <Component {...props} />;
-        }
-        return null; // or a loader
+    // If authenticated and on an admin page, or if on the login page, render the component
+    if ((user && isAdmin) || pathname === '/login') {
+        return <Component {...props} />;
     }
 
-
-    return <Component {...props} />;
+    // Otherwise, render nothing while redirecting
+    return null;
   };
   return AuthenticatedComponent;
 };
