@@ -54,6 +54,12 @@ const SubscriptionForm = () => {
       fullName: "",
       email: "",
       phoneNumber: "",
+      age: undefined,
+      height: undefined,
+      weight: undefined,
+      experienceLevel: undefined,
+      primaryGoal: undefined,
+      preferredPlan: undefined,
       injuriesOrNotes: "",
       otherGoal: "",
     },
@@ -94,10 +100,10 @@ const SubscriptionForm = () => {
   return (
     <section id="subscription-form" className="py-20 md:py-32 bg-background">
       <div className="container mx-auto px-4 md:px-6">
-        <Card className="max-w-4xl mx-auto shadow-2xl">
+        <Card className="max-w-4xl mx-auto shadow-2xl bg-card">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl md:text-4xl font-headline font-bold">Start Your Journey Today</CardTitle>
-            <CardDescription className="pt-2">Fill out the form below to apply for coaching. Spaces are limited.</CardDescription>
+            <CardDescription className="pt-2 text-muted-foreground">Fill out the form below to apply for coaching. Spaces are limited.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -127,21 +133,21 @@ const SubscriptionForm = () => {
                    <FormField control={form.control} name="age" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Age</FormLabel>
-                      <FormControl><Input type="number" placeholder="25" {...field} /></FormControl>
+                      <FormControl><Input type="number" placeholder="25" {...field} value={field.value ?? ''} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="height" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Height (cm)</FormLabel>
-                      <FormControl><Input type="number" placeholder="180" {...field} /></FormControl>
+                      <FormControl><Input type="number" placeholder="180" {...field} value={field.value ?? ''} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                    <FormField control={form.control} name="weight" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Weight (kg)</FormLabel>
-                      <FormControl><Input type="number" placeholder="85" {...field} /></FormControl>
+                      <FormControl><Input type="number" placeholder="85" {...field} value={field.value ?? ''} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
