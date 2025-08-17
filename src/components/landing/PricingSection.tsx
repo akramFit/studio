@@ -78,7 +78,10 @@ const PricingSection = () => {
                   </ul>
               </CardContent>
               <CardFooter className="flex-col items-stretch pt-6">
-                 <div className="text-center text-2xl font-bold mb-4">{plan.price}</div>
+                 <div className="text-center mb-4">
+                    <span className="text-2xl font-bold">{plan.price}</span>
+                    <span className="text-sm text-muted-foreground">/ month</span>
+                 </div>
                 <Button asChild className="w-full" size="lg">
                   <Link href="#subscription-form">{plan.buttonText}</Link>
                 </Button>
