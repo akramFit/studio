@@ -111,6 +111,8 @@ const PricingPage = () => {
         toast({ title: 'Error', description: 'Failed to delete plan.', variant: 'destructive' });
     }
   };
+  
+  const DZD_TO_USD_RATE = 1 / 135;
 
   return (
     <Card>
@@ -162,20 +164,26 @@ const PricingPage = () => {
       <CardContent>
         {loading ? <div className="flex justify-center py-10"><Loader2 className="h-8 w-8 animate-spin"/></div> : (
           <div className="space-y-4">
-            {plans.map(p => (
-              <div key={p.id} className="flex items-start justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-bold">{p.name} - ${p.price} <span className="font-normal text-muted-foreground text-sm">({p.durationDays} days)</span></h3>
-                  <ul className="list-disc list-inside text-sm text-muted-foreground mt-2">
-                      {p.features.map((f, i) => <li key={i}>{f}</li>)}
-                  </ul>
+            {plans.map(p => {
+              const usdPrice = Math.round(p.price * DZD_TO_USD_RATE);
+              return (
+                <div key={p.id} className="flex items-start justify-between p-4 border rounded-lg">
+                  <div>
+                    <h3 className="font-bold">
+                      {p.name} - {p.price} DZD <span className="text-sm font-normal text-muted-foreground">(approx. ${usdPrice} USD)</span>
+                      <span className="font-normal text-muted-foreground text-sm ml-2">({p.durationDays} days)</span>
+                    </h3>
+                    <ul className="list-disc list-inside text-sm text-muted-foreground mt-2">
+                        {p.features.map((f, i) => <li key={i}>{f}</li>)}
+                    </ul>
+                  </div>
+                  <div className="flex gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(p)}><Edit className="h-4 w-4"/></Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)}><Trash2 className="h-4 w-4 text-red-500"/></Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(p)}><Edit className="h-4 w-4"/></Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)}><Trash2 className="h-4 w-4 text-red-500"/></Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>
