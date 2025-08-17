@@ -1,11 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { ref, listAll, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 interface GalleryItem {
   id: string;
@@ -44,27 +51,37 @@ const GallerySection = () => {
         </div>
         
         {loading ? (
-          <div className="columns-2 md:columns-3 lg:columns-4 gap-4">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <Skeleton key={index} className="w-full h-64 mb-4 rounded-lg" />
-            ))}
+          <div className="flex justify-center">
+            <Skeleton className="w-full max-w-xl h-96 rounded-lg" />
           </div>
         ) : (
-          <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-            {galleryItems.map(item => (
-              <div key={item.id} className="overflow-hidden rounded-lg shadow-lg group relative break-inside-avoid">
-                <Image
-                  src={item.imageURL || 'https://placehold.co/600x400.png'}
-                  alt={item.caption || 'Gallery image'}
-                  width={600}
-                  height={800}
-                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110"
-                  data-ai-hint="fitness transformation"
-                />
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                <p className="absolute bottom-0 left-0 p-4 text-white text-sm font-medium">{item.caption}</p>
-              </div>
-            ))}
+          <div className="flex justify-center">
+            <Carousel className="w-full max-w-xl">
+              <CarouselContent>
+                {galleryItems.map((item) => (
+                  <CarouselItem key={item.id}>
+                    <div className="p-1">
+                      <Card className="overflow-hidden">
+                        <CardContent className="flex flex-col aspect-square items-center justify-center p-0 relative group">
+                           <Image
+                              src={item.imageURL || 'https://placehold.co/600x800.png'}
+                              alt={item.caption || 'Gallery image'}
+                              width={600}
+                              height={800}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                              data-ai-hint="fitness transformation"
+                            />
+                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                           <p className="absolute bottom-0 left-0 p-4 text-white text-sm font-medium">{item.caption}</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden sm:flex" />
+              <CarouselNext className="hidden sm:flex" />
+            </Carousel>
           </div>
         )}
       </div>
