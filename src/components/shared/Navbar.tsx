@@ -41,7 +41,7 @@ const Navbar = () => {
     )}>
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2" aria-label="Akram Fit Training Home">
-          <Logo className="h-8 w-8 text-primary" />
+          
           <span className="text-xl font-headline font-bold text-foreground">Akram Fit Training</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
@@ -65,7 +65,7 @@ const Navbar = () => {
             <SheetContent side="right">
               <div className="flex flex-col gap-6 p-6">
                 <Link href="/" className="flex items-center gap-2 mb-4" aria-label="Akram Fit Training Home">
-                   <Logo className="h-8 w-8 text-primary" />
+                   
                    <span className="text-xl font-headline font-bold">Akram Fit Training</span>
                 </Link>
                 {navLinks.map(({ href, label }) => (
