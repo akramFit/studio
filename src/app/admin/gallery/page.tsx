@@ -135,7 +135,7 @@ const GalleryPage = () => {
                         <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="caption" render={({ field }) => (
-                        <FormItem><FormLabel>Caption</FormLabel><FormControl><Textarea placeholder="Enter a descriptive caption..." {...field} /></FormControl><FormMessage /></Form-Item>
+                        <FormItem><FormLabel>Caption</FormLabel><FormControl><Textarea placeholder="Enter a descriptive caption..." {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <Button type="submit" disabled={isSubmitting} className="w-full">
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
