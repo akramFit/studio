@@ -31,18 +31,20 @@ const faqData = [
 
 const FaqSection = () => {
   return (
-    <section id="faq" className="py-20 md:py-32 bg-card">
+    <section id="faq" className="py-20 md:py-32 bg-black">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-headline font-bold text-card-foreground">Frequently Asked Questions</h2>
-          <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Have questions? We have answers. If you don't see your question here, feel free to reach out.</p>
+          <h2 className="text-3xl md:text-4xl font-headline font-bold text-white">Frequently Asked Questions</h2>
+          <p className="text-slate-300 mt-2 max-w-2xl mx-auto">Have questions? We have answers. If you don't see your question here, feel free to reach out.</p>
         </div>
         <div className="max-w-3xl mx-auto">
           <Accordion type="single" collapsible className="w-full">
             {faqData.map((faq, index) => (
-              <AccordionItem value={`item-${index}`} key={index}>
-                <AccordionTrigger className="text-lg font-semibold text-left">{faq.question}</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
+              <AccordionItem value={`item-${index}`} key={index} className="border-slate-800">
+                <AccordionTrigger className="text-lg font-semibold text-left text-white hover:text-primary">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-slate-400">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
