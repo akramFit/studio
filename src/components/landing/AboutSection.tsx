@@ -23,27 +23,36 @@ const AboutSection = () => {
               With over a decade of experience in competitive bodybuilding and professional coaching, Akram has dedicated his life to the art and science of physique transformation. His philosophy combines evidence-based training protocols with a deep understanding of nutrition and mindset, ensuring every athlete reaches their peak potential.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <Card className="bg-slate-900/50 border-slate-800">
-                <CardContent className="p-6 flex flex-col items-center text-center gap-2">
-                  <Award className="h-10 w-10 text-primary" />
-                  <h3 className="font-semibold text-white">10+ Years</h3>
-                  <p className="text-sm text-slate-400">Competitive Experience</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-slate-900/50 border-slate-800">
-                <CardContent className="p-6 flex flex-col items-center text-center gap-2">
-                  <ShieldCheck className="h-10 w-10 text-primary" />
-                  <h3 className="font-semibold text-white">Certified</h3>
-                  <p className="text-sm text-slate-400">Personal Trainer & Nutritionist</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-slate-900/50 border-slate-800">
-                <CardContent className="p-6 flex flex-col items-center text-center gap-2">
-                  <HeartPulse className="h-10 w-10 text-primary" />
-                  <h3 className="font-semibold text-white">Holistic</h3>
-                  <p className="text-sm text-slate-400">Health-First Approach</p>
-                </CardContent>
-              </Card>
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <Card className="relative bg-slate-900/50 border-slate-800 h-full">
+                  <CardContent className="p-6 flex flex-col items-center text-center gap-2">
+                    <Award className="h-10 w-10 text-primary" />
+                    <h3 className="font-semibold text-white">10+ Years</h3>
+                    <p className="text-sm text-slate-400">Competitive Experience</p>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <Card className="relative bg-slate-900/50 border-slate-800 h-full">
+                  <CardContent className="p-6 flex flex-col items-center text-center gap-2">
+                    <ShieldCheck className="h-10 w-10 text-primary" />
+                    <h3 className="font-semibold text-white">Certified</h3>
+                    <p className="text-sm text-slate-400">Personal Trainer & Nutritionist</p>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <Card className="relative bg-slate-900/50 border-slate-800 h-full">
+                  <CardContent className="p-6 flex flex-col items-center text-center gap-2">
+                    <HeartPulse className="h-10 w-10 text-primary" />
+                    <h3 className="font-semibold text-white">Holistic</h3>
+                    <p className="text-sm text-slate-400">Health-First Approach</p>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </div>
