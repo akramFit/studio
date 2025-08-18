@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import Image from 'next/image';
@@ -19,20 +19,24 @@ interface AchievementItem {
   id: string;
   imageURL: string;
   caption: string;
+  visible: boolean;
 }
 
 const AchievementsSection = () => {
-  const [achievements, setAchievements] = useState<AchievementItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [achievements, setAchievements] = React.useState<AchievementItem[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchAchievements = async () => {
       setLoading(true);
       try {
         const achievementsCollection = collection(db, 'achievements');
-        const q = query(achievementsCollection, where('visible', '==', true), orderBy('position'));
+        // Simplified query to avoid composite index requirement
+        const q = query(achievementsCollection, orderBy('position'));
         const querySnapshot = await getDocs(q);
-        const itemsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AchievementItem));
+        const itemsData = querySnapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() } as AchievementItem))
+            .filter(item => item.visible); // Filter for visible items on the client-side
         setAchievements(itemsData);
       } catch (error) {
         console.error("Error fetching achievements data: ", error);
