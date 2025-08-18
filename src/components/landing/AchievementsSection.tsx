@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from "@/components/ui/card"
@@ -14,12 +14,15 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { Badge } from '@/components/ui/badge';
+import { Clock } from 'lucide-react';
 
 interface AchievementItem {
   id: string;
   imageURL: string;
   caption: string;
   visible: boolean;
+  transformationPeriod?: number;
 }
 
 const AchievementsSection = () => {
@@ -31,12 +34,11 @@ const AchievementsSection = () => {
       setLoading(true);
       try {
         const achievementsCollection = collection(db, 'achievements');
-        // Simplified query to avoid composite index requirement
         const q = query(achievementsCollection, orderBy('position'));
         const querySnapshot = await getDocs(q);
         const itemsData = querySnapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() } as AchievementItem))
-            .filter(item => item.visible); // Filter for visible items on the client-side
+            .filter(item => item.visible);
         setAchievements(itemsData);
       } catch (error) {
         console.error("Error fetching achievements data: ", error);
@@ -77,7 +79,13 @@ const AchievementsSection = () => {
                               data-ai-hint="fitness transformation"
                             />
                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                           <p className="absolute bottom-0 left-0 p-4 text-white text-sm font-medium">{item.caption}</p>
+                           <p className="absolute bottom-4 left-4 text-white text-sm font-medium">{item.caption}</p>
+                           {item.transformationPeriod && (
+                             <Badge className="absolute bottom-4 right-4 bg-primary/80 backdrop-blur-sm">
+                                <Clock className="mr-1.5 h-3 w-3" />
+                                {item.transformationPeriod} Months
+                             </Badge>
+                           )}
                         </CardContent>
                       </Card>
                     </div>

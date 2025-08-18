@@ -12,14 +12,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { Trash2, Edit, PlusCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Trash2, Edit, PlusCircle, Loader2, RefreshCw, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 
 const achievementSchema = z.object({
   imageURL: z.string().url("Please enter a valid URL."),
   caption: z.string().min(2, "Caption is required."),
+  transformationPeriod: z.coerce.number().int().min(1, "Period must be at least 1 month.").optional(),
 });
 
 interface AchievementItem extends z.infer<typeof achievementSchema> {
@@ -37,7 +39,7 @@ const AchievementsPage = () => {
 
   const form = useForm<z.infer<typeof achievementSchema>>({
     resolver: zodResolver(achievementSchema),
-    defaultValues: { imageURL: "", caption: "" },
+    defaultValues: { imageURL: "", caption: "", transformationPeriod: undefined },
   });
 
   const fetchAchievements = useCallback(async () => {
@@ -66,7 +68,7 @@ const AchievementsPage = () => {
 
   const openNewDialog = () => {
     setEditingItem(null);
-    form.reset({ imageURL: "", caption: "" });
+    form.reset({ imageURL: "", caption: "", transformationPeriod: undefined });
     setIsDialogOpen(true);
   };
 
@@ -130,7 +132,10 @@ const AchievementsPage = () => {
                         <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="caption" render={({ field }) => (
-                        <FormItem><FormLabel>Caption</FormLabel><FormControl><Textarea placeholder="Client's name and transformation details..." {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Caption</FormLabel><FormControl><Textarea placeholder="Client's name..." {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                     <FormField control={form.control} name="transformationPeriod" render={({ field }) => (
+                        <FormItem><FormLabel>Transformation Period (Months)</FormLabel><FormControl><Input type="number" placeholder="e.g., 6" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <Button type="submit" disabled={isSubmitting} className="w-full">
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
@@ -155,16 +160,21 @@ const AchievementsPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {achievements.map(item => (
                 <div key={item.id} className="group relative border rounded-lg overflow-hidden shadow">
-                <Image src={item.imageURL} alt={item.caption} width={400} height={400} className="object-cover w-full h-60" />
-                <div className="p-4 bg-card">
-                  <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground truncate pr-2">{item.caption}</p>
-                      <div className="flex items-center">
-                          <Button size="icon" variant="ghost" onClick={() => openEditDialog(item)}><Edit className="h-4 w-4" /></Button>
-                          <Button size="icon" variant="ghost" onClick={() => handleDelete(item.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
-                      </div>
-                  </div>
-                </div>
+                    <Image src={item.imageURL} alt={item.caption} width={400} height={400} className="object-cover w-full h-60" />
+                    {item.transformationPeriod && (
+                        <Badge className="absolute top-2 right-2 bg-primary/80 backdrop-blur-sm">
+                            <Clock className="mr-1 h-3 w-3" /> {item.transformationPeriod} Months
+                        </Badge>
+                    )}
+                    <div className="p-4 bg-card">
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm text-muted-foreground truncate pr-2">{item.caption}</p>
+                            <div className="flex items-center">
+                                <Button size="icon" variant="ghost" onClick={() => openEditDialog(item)}><Edit className="h-4 w-4" /></Button>
+                                <Button size="icon" variant="ghost" onClick={() => handleDelete(item.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             ))}
             </div>
