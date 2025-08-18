@@ -19,7 +19,7 @@ export default {
       fontFamily: {
         body: ["'Inter'", 'sans-serif'],
         headline: ["'Space Grotesk'", 'sans-serif'],
-        anton: ["'Anton'", 'sans-serif'],
+        bebas: ["'Bebas Neue'", 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
