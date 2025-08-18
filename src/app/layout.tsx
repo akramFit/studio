@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Akram Training Hub',
+  title: 'Akram Fit Training',
   description: 'Personalized bodybuilding coaching by Akram.',
 };
 

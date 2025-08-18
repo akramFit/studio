@@ -8,9 +8,9 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             <Dumbbell className="h-8 w-8 text-primary" />
-            <span className="text-xl font-headline font-bold text-card-foreground">Akram Training Hub</span>
+            <span className="text-xl font-headline font-bold text-card-foreground">Akram Fit Training</span>
           </div>
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Akram Training Hub. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Akram Fit Training. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link href="#" aria-label="Twitter">
               <Twitter className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />

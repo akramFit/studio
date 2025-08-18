@@ -39,9 +39,9 @@ const Navbar = () => {
       isMounted && isScrolled ? "bg-background/80 backdrop-blur-sm shadow-md" : "bg-transparent"
     )}>
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2" aria-label="Akram Training Hub Home">
+        <Link href="/" className="flex items-center gap-2" aria-label="Akram Fit Training Home">
           <Dumbbell className="h-8 w-8 text-primary" />
-          <span className="text-xl font-headline font-bold text-foreground">Akram Training Hub</span>
+          <span className="text-xl font-headline font-bold text-foreground">Akram Fit Training</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
           {navLinks.map(({ href, label }) => (
@@ -63,9 +63,9 @@ const Navbar = () => {
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col gap-6 p-6">
-                <Link href="/" className="flex items-center gap-2 mb-4" aria-label="Akram Training Hub Home">
+                <Link href="/" className="flex items-center gap-2 mb-4" aria-label="Akram Fit Training Home">
                    <Dumbbell className="h-8 w-8 text-primary" />
-                   <span className="text-xl font-headline font-bold">Akram Training</span>
+                   <span className="text-xl font-headline font-bold">Akram Fit Training</span>
                 </Link>
                 {navLinks.map(({ href, label }) => (
                   <Link key={href} href={href} className="text-lg font-medium text-foreground transition-colors hover:text-primary">

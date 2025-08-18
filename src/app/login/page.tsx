@@ -55,7 +55,7 @@ const LoginPage = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
-          <Link href="/" className="flex items-center justify-center gap-2 mb-4" aria-label="Akram Training Hub Home">
+          <Link href="/" className="flex items-center justify-center gap-2 mb-4" aria-label="Akram Fit Training Home">
             <Dumbbell className="h-10 w-10 text-primary" />
           </Link>
           <CardTitle className="font-headline text-2xl">Admin Login</CardTitle>
