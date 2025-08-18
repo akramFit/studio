@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 const AboutSection = () => {
   return (
-    <section id="about" className="py-20 md:py-32 bg-card">
+    <section id="about" className="py-20 md:py-32 bg-black">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="relative group">
@@ -18,30 +18,30 @@ const AboutSection = () => {
             />
           </div>
           <div className="flex flex-col gap-6">
-            <h2 className="text-3xl md:text-4xl font-headline font-bold text-card-foreground">Meet Your Coach, Akram</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold text-white">Meet Your Coach, Akram</h2>
+            <p className="text-slate-300">
               With over a decade of experience in competitive bodybuilding and professional coaching, Akram has dedicated his life to the art and science of physique transformation. His philosophy combines evidence-based training protocols with a deep understanding of nutrition and mindset, ensuring every athlete reaches their peak potential.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <Card className="bg-background/50">
+              <Card className="bg-slate-900/50 border-slate-800">
                 <CardContent className="p-6 flex flex-col items-center text-center gap-2">
                   <Award className="h-10 w-10 text-primary" />
-                  <h3 className="font-semibold">10+ Years</h3>
-                  <p className="text-sm text-muted-foreground">Competitive Experience</p>
+                  <h3 className="font-semibold text-white">10+ Years</h3>
+                  <p className="text-sm text-slate-400">Competitive Experience</p>
                 </CardContent>
               </Card>
-              <Card className="bg-background/50">
+              <Card className="bg-slate-900/50 border-slate-800">
                 <CardContent className="p-6 flex flex-col items-center text-center gap-2">
                   <ShieldCheck className="h-10 w-10 text-primary" />
-                  <h3 className="font-semibold">Certified</h3>
-                  <p className="text-sm text-muted-foreground">Personal Trainer & Nutritionist</p>
+                  <h3 className="font-semibold text-white">Certified</h3>
+                  <p className="text-sm text-slate-400">Personal Trainer & Nutritionist</p>
                 </CardContent>
               </Card>
-              <Card className="bg-background/50">
+              <Card className="bg-slate-900/50 border-slate-800">
                 <CardContent className="p-6 flex flex-col items-center text-center gap-2">
                   <HeartPulse className="h-10 w-10 text-primary" />
-                  <h3 className="font-semibold">Holistic</h3>
-                  <p className="text-sm text-muted-foreground">Health-First Approach</p>
+                  <h3 className="font-semibold text-white">Holistic</h3>
+                  <p className="text-sm text-slate-400">Health-First Approach</p>
                 </CardContent>
               </Card>
             </div>
