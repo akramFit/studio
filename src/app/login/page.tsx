@@ -12,8 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Dumbbell, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import Logo from '@/components/shared/Logo';
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -56,7 +57,7 @@ const LoginPage = () => {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <Link href="/" className="flex items-center justify-center gap-2 mb-4" aria-label="Akram Fit Training Home">
-            <Dumbbell className="h-10 w-10 text-primary" />
+            <Logo className="h-10 w-10 text-primary" />
           </Link>
           <CardTitle className="font-headline text-2xl">Admin Login</CardTitle>
           <CardDescription>Enter your credentials to access the dashboard.</CardDescription>

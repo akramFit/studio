@@ -11,12 +11,12 @@ import {
   Trophy,
   DollarSign,
   LogOut,
-  Dumbbell,
   Inbox,
 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import Logo from '@/components/shared/Logo';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -46,7 +46,7 @@ const AdminSidebar = () => {
     <aside className="w-64 flex-shrink-0 bg-card border-r flex flex-col">
       <div className="h-20 flex items-center justify-center px-6 border-b">
         <Link href="/admin" className="flex items-center gap-2">
-          <Dumbbell className="h-8 w-8 text-primary" />
+          <Logo className="h-8 w-8 text-primary" />
           <span className="text-lg font-headline font-bold">Admin Panel</span>
         </Link>
       </div>
