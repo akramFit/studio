@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -14,32 +15,32 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 
-interface GalleryItem {
+interface AchievementItem {
   id: string;
   imageURL: string;
   caption: string;
 }
 
 const AchievementsSection = () => {
-  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [achievements, setAchievements] = useState<AchievementItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchGallery = async () => {
+    const fetchAchievements = async () => {
       setLoading(true);
       try {
-        const galleryCollection = collection(db, 'gallery');
-        const q = query(galleryCollection, where('visible', '==', true), orderBy('position'));
+        const achievementsCollection = collection(db, 'achievements');
+        const q = query(achievementsCollection, where('visible', '==', true), orderBy('position'));
         const querySnapshot = await getDocs(q);
-        const itemsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GalleryItem));
-        setGalleryItems(itemsData);
+        const itemsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AchievementItem));
+        setAchievements(itemsData);
       } catch (error) {
-        console.error("Error fetching gallery data: ", error);
+        console.error("Error fetching achievements data: ", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchGallery();
+    fetchAchievements();
   }, []);
 
   return (
@@ -58,14 +59,14 @@ const AchievementsSection = () => {
           <div className="flex justify-center">
             <Carousel className="w-full max-w-xl">
               <CarouselContent>
-                {galleryItems.map((item) => (
+                {achievements.map((item) => (
                   <CarouselItem key={item.id}>
                     <div className="p-1">
                       <Card className="overflow-hidden">
                         <CardContent className="flex flex-col aspect-square items-center justify-center p-0 relative group">
                            <Image
                               src={item.imageURL || 'https://placehold.co/600x800.png'}
-                              alt={item.caption || 'Gallery image'}
+                              alt={item.caption || 'Achievement image'}
                               width={600}
                               height={800}
                               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"

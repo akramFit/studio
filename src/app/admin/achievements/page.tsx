@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -5,48 +6,49 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, updateDoc, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import Image from 'next/image';
 import { Trash2, Edit, PlusCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
 
 const achievementSchema = z.object({
-  title: z.string().min(2, "Title is required."),
-  year: z.string().regex(/^\d{4}$/, "Must be a valid year."),
-  description: z.string().min(10, "Description is too short."),
+  imageURL: z.string().url("Please enter a valid URL."),
+  caption: z.string().min(2, "Caption is required."),
 });
 
-interface Achievement extends z.infer<typeof achievementSchema> {
+interface AchievementItem extends z.infer<typeof achievementSchema> {
   id: string;
+  position: number;
 }
 
 const AchievementsPage = () => {
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [achievements, setAchievements] = useState<AchievementItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingAchievement, setEditingAchievement] = useState<Achievement | null>(null);
+  const [editingItem, setEditingItem] = useState<AchievementItem | null>(null);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof achievementSchema>>({
     resolver: zodResolver(achievementSchema),
-    defaultValues: { title: "", year: "", description: "" },
+    defaultValues: { imageURL: "", caption: "" },
   });
 
   const fetchAchievements = useCallback(async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, "achievements"), orderBy("year", "desc"));
+      const q = query(collection(db, "achievements"), orderBy("position"));
       const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Achievement));
-      setAchievements(data);
+      const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AchievementItem));
+      setAchievements(items);
     } catch (error) {
-      toast({ title: "Error", description: "Failed to fetch achievements.", variant: "destructive" });
+      toast({ title: "Error", description: "Could not fetch achievements.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -56,27 +58,32 @@ const AchievementsPage = () => {
     fetchAchievements();
   }, [fetchAchievements]);
 
-  const openEditDialog = (achievement: Achievement) => {
-    setEditingAchievement(achievement);
-    form.reset(achievement);
+  const openEditDialog = (item: AchievementItem) => {
+    setEditingItem(item);
+    form.reset(item);
     setIsDialogOpen(true);
   };
-  
+
   const openNewDialog = () => {
-    setEditingAchievement(null);
-    form.reset({ title: "", year: "", description: "" });
+    setEditingItem(null);
+    form.reset({ imageURL: "", caption: "" });
     setIsDialogOpen(true);
   };
 
   const onSubmit = async (values: z.infer<typeof achievementSchema>) => {
     setIsSubmitting(true);
     try {
-      if (editingAchievement) {
-        const docRef = doc(db, 'achievements', editingAchievement.id);
+      if (editingItem) {
+        const docRef = doc(db, 'achievements', editingItem.id);
         await updateDoc(docRef, values);
         toast({ title: 'Success', description: 'Achievement updated.' });
       } else {
-        await addDoc(collection(db, 'achievements'), values);
+        await addDoc(collection(db, 'achievements'), {
+          ...values,
+          visible: true,
+          position: achievements.length,
+          createdAt: serverTimestamp(),
+        });
         toast({ title: 'Success', description: 'Achievement added.' });
       }
       setIsDialogOpen(false);
@@ -90,11 +97,11 @@ const AchievementsPage = () => {
 
   const handleDelete = async (id: string) => {
     try {
-        await deleteDoc(doc(db, 'achievements', id));
-        toast({ title: 'Success', description: 'Achievement deleted.' });
-        fetchAchievements();
+      await deleteDoc(doc(db, 'achievements', id));
+      toast({ title: 'Success', description: 'Achievement deleted successfully.' });
+      fetchAchievements();
     } catch (error) {
-        toast({ title: 'Error', description: 'Failed to delete achievement.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Failed to delete achievement.', variant: 'destructive' });
     }
   };
 
@@ -102,62 +109,65 @@ const AchievementsPage = () => {
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Achievements</CardTitle>
-              <CardDescription>Manage your list of accomplishments.</CardDescription>
-            </div>
-            <div className="flex gap-2">
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button onClick={openNewDialog}>
-                            <PlusCircle className="mr-2 h-4 w-4"/> Add New
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>{editingAchievement ? 'Edit' : 'Add'} Achievement</DialogTitle>
-                        </DialogHeader>
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                <FormField control={form.control} name="title" render={({ field }) => (
-                                    <FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                <FormField control={form.control} name="year" render={({ field }) => (
-                                    <FormItem><FormLabel>Year</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                <FormField control={form.control} name="description" render={({ field }) => (
-                                    <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                <Button type="submit" disabled={isSubmitting} className="w-full">
-                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                    Save
-                                </Button>
-                            </form>
-                        </Form>
-                    </DialogContent>
-                </Dialog>
-                <Button onClick={fetchAchievements} variant="outline" size="icon" disabled={loading}>
-                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <div>
+            <CardTitle>Client Achievements</CardTitle>
+            <CardDescription>Manage client transformation photos.</CardDescription>
+          </div>
+          <div className="flex gap-2 items-center">
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={openNewDialog}>
+                  <PlusCircle className="mr-2 h-4 w-4"/> Add Achievement
                 </Button>
-            </div>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{editingItem ? 'Edit' : 'Add'} Achievement</DialogTitle>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField control={form.control} name="imageURL" render={({ field }) => (
+                        <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField control={form.control} name="caption" render={({ field }) => (
+                        <FormItem><FormLabel>Caption</FormLabel><FormControl><Textarea placeholder="Client's name and transformation details..." {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <Button type="submit" disabled={isSubmitting} className="w-full">
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                        Save
+                    </Button>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+            <Button onClick={fetchAchievements} variant="outline" size="icon" disabled={loading}>
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        {loading ? <div className="flex justify-center py-10"><Loader2 className="h-8 w-8 animate-spin"/></div> : (
-          <div className="space-y-4">
-            {achievements.map(ach => (
-              <div key={ach.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-bold">{ach.title} <span className="font-normal text-muted-foreground text-sm">({ach.year})</span></h3>
-                  <p className="text-sm text-muted-foreground">{ach.description}</p>
+        {loading ? (
+            <div className="flex justify-center items-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {achievements.map(item => (
+                <div key={item.id} className="group relative border rounded-lg overflow-hidden shadow">
+                <Image src={item.imageURL} alt={item.caption} width={400} height={400} className="object-cover w-full h-60" />
+                <div className="p-4 bg-card">
+                  <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground truncate pr-2">{item.caption}</p>
+                      <div className="flex items-center">
+                          <Button size="icon" variant="ghost" onClick={() => openEditDialog(item)}><Edit className="h-4 w-4" /></Button>
+                          <Button size="icon" variant="ghost" onClick={() => handleDelete(item.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                      </div>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(ach)}><Edit className="h-4 w-4"/></Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(ach.id)}><Trash2 className="h-4 w-4 text-red-500"/></Button>
                 </div>
-              </div>
             ))}
-          </div>
+            </div>
         )}
       </CardContent>
     </Card>
