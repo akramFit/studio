@@ -6,7 +6,7 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Dumbbell, Crown, Star } from 'lucide-react';
+import { Check, Flame, Crown, Star } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +23,7 @@ interface Plan {
 }
 
 const iconMap: { [key: string]: React.ElementType } = {
-  "Personal Training": Dumbbell,
+  "Personal Training": Flame,
   "Online Coaching": Check,
   "Online VIP": Crown,
 };
@@ -81,7 +81,7 @@ const PricingSection = () => {
             ))
           ) : (
             plans.map((plan, index) => {
-              const Icon = iconMap[plan.name] || Dumbbell;
+              const Icon = iconMap[plan.name] || Flame;
               const priceUSD = Math.round(plan.price * DZD_TO_USD_RATE);
               return (
                 <div key={plan.id} className={cn("relative group", plan.mostPopular && "scale-105")}>
