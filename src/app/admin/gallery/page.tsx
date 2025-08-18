@@ -16,6 +16,7 @@ import { Trash2, Edit, PlusCircle, Loader2, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 
 const galleryItemSchema = z.object({
   imageURL: z.string().url("Please enter a valid URL."),
@@ -111,7 +112,10 @@ const GalleryPage = () => {
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Gallery Management</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              Gallery Management 
+              {!loading && <Badge variant="secondary">{galleryItems.length} images</Badge>}
+            </CardTitle>
             <CardDescription>Add, edit, and remove gallery images using URLs.</CardDescription>
           </div>
           <div className="flex gap-2 items-center">
@@ -131,7 +135,7 @@ const GalleryPage = () => {
                         <FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="caption" render={({ field }) => (
-                        <FormItem><FormLabel>Caption</FormLabel><FormControl><Textarea placeholder="Enter a descriptive caption..." {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Caption</FormLabel><FormControl><Textarea placeholder="Enter a descriptive caption..." {...field} /></FormControl><FormMessage /></Form-Item>
                     )}/>
                     <Button type="submit" disabled={isSubmitting} className="w-full">
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
