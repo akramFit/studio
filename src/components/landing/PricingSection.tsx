@@ -62,7 +62,7 @@ const PricingSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
           {loading ? (
             Array.from({ length: 3 }).map((_, index) => (
-              <Card key={index} className="flex flex-col shadow-lg bg-background/50">
+              <Card key={index} className="flex flex-col shadow-lg bg-slate-900/50 border-slate-800">
                 <CardHeader className="items-center text-center">
                   <Skeleton className="h-16 w-16 rounded-full mb-4" />
                   <Skeleton className="h-8 w-40" />
@@ -84,41 +84,44 @@ const PricingSection = () => {
               const Icon = iconMap[plan.name] || Dumbbell;
               const priceUSD = Math.round(plan.price * DZD_TO_USD_RATE);
               return (
-                <Card key={plan.id} className={cn(`flex flex-col shadow-lg transition-transform hover:scale-105 relative bg-background/50`, plan.mostPopular && "border-primary shadow-primary/20")}>
-                   {plan.mostPopular && (
-                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground">
-                      <Star className="mr-1 h-3 w-3" />
-                      Most Popular
-                    </Badge>
-                  )}
-                  <CardHeader className="items-center text-center pt-8">
-                    <div className="p-4 bg-primary/10 rounded-full mb-4">
-                      <Icon className="h-8 w-8 text-primary" />
-                    </div>
-                    <CardTitle className="font-headline text-2xl text-primary">{plan.name}</CardTitle>
-                    {plan.description && <CardDescription className="text-base h-12">{plan.description}</CardDescription>}
-                  </CardHeader>
-                  <CardContent className="flex-1 space-y-4 pt-4">
-                    <ul className="space-y-3 text-muted-foreground">
-                        {plan.features.map((feature, i) => (
-                          <li key={i} className="flex items-start">
-                            <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-1" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                  </CardContent>
-                  <CardFooter className="flex-col items-stretch pt-6">
-                    <div className="text-center mb-4">
-                        <span className="text-2xl font-bold">{plan.price} DZD</span>
-                        <span className="text-sm text-muted-foreground">/ month</span>
-                        <p className="text-xs text-muted-foreground">(approx. ${priceUSD} USD)</p>
-                    </div>
-                    <Button asChild className={cn("w-full", plan.mostPopular && "bg-accent hover:bg-accent/90")} size="lg">
-                      <Link href="#subscription-form">Get Started</Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <div key={plan.id} className={cn("relative group", plan.mostPopular && "scale-105")}>
+                  <div className={cn("absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-60 transition duration-1000 group-hover:duration-200", plan.mostPopular && "opacity-60")}></div>
+                  <Card className={cn(`relative flex flex-col shadow-lg transition-transform h-full bg-slate-900/80 border-slate-800 backdrop-blur-sm`, plan.mostPopular && "border-primary shadow-primary/20")}>
+                    {plan.mostPopular && (
+                      <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground">
+                        <Star className="mr-1 h-3 w-3" />
+                        Most Popular
+                      </Badge>
+                    )}
+                    <CardHeader className="items-center text-center pt-8">
+                      <div className="p-4 bg-primary/10 rounded-full mb-4">
+                        <Icon className="h-8 w-8 text-primary" />
+                      </div>
+                      <CardTitle className="font-headline text-2xl text-primary">{plan.name}</CardTitle>
+                      {plan.description && <CardDescription className="text-base h-12 text-slate-400">{plan.description}</CardDescription>}
+                    </CardHeader>
+                    <CardContent className="flex-1 space-y-4 pt-4">
+                      <ul className="space-y-3 text-slate-400">
+                          {plan.features.map((feature, i) => (
+                            <li key={i} className="flex items-start">
+                              <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-1" />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                    </CardContent>
+                    <CardFooter className="flex-col items-stretch pt-6">
+                      <div className="text-center mb-4 text-white">
+                          <span className="text-2xl font-bold">{plan.price} DZD</span>
+                          <span className="text-sm text-slate-400">/ month</span>
+                          <p className="text-xs text-slate-400">(approx. ${priceUSD} USD)</p>
+                      </div>
+                      <Button asChild className={cn("w-full", plan.mostPopular && "bg-accent hover:bg-accent/90")} size="lg">
+                        <Link href="#subscription-form">Get Started</Link>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </div>
               )
             })
           )}

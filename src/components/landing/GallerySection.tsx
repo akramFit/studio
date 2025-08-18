@@ -65,18 +65,20 @@ const GallerySection = () => {
                   <CarouselItem key={item.id}>
                     <div className="p-1">
                       <Card className="overflow-hidden bg-transparent border-none">
-                        <CardContent className="flex flex-col aspect-square items-center justify-center p-0 relative group">
-                           <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                           <Image
-                              src={item.imageURL || 'https://placehold.co/600x800.png'}
-                              alt={item.caption || 'Gallery image'}
-                              width={600}
-                              height={800}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 relative rounded-lg"
-                              data-ai-hint="bodybuilding physique"
-                            />
-                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                           <p className="absolute bottom-0 left-0 p-4 text-white text-sm font-medium">{item.caption}</p>
+                        <CardContent className="flex flex-col aspect-square items-center justify-center p-0 relative">
+                           <div className="relative group w-full h-full">
+                              <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                              <Image
+                                src={item.imageURL || 'https://placehold.co/600x800.png'}
+                                alt={item.caption || 'Gallery image'}
+                                width={600}
+                                height={800}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 relative rounded-lg"
+                                data-ai-hint="bodybuilding physique"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-lg"></div>
+                              <p className="absolute bottom-4 left-4 text-white text-sm font-medium">{item.caption}</p>
+                           </div>
                         </CardContent>
                       </Card>
                     </div>

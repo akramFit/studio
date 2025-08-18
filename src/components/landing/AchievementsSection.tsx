@@ -38,7 +38,7 @@ const AchievementsSection = () => {
         const querySnapshot = await getDocs(q);
         const itemsData = querySnapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() } as AchievementItem))
-            .filter(item => item.visible !== false); // Keep if visible is true or undefined
+            .filter(item => item.visible !== false);
         setAchievements(itemsData);
       } catch (error) {
         console.error("Error fetching achievements data: ", error);
@@ -69,24 +69,26 @@ const AchievementsSection = () => {
                   <CarouselItem key={item.id}>
                     <div className="p-1">
                       <Card className="overflow-hidden bg-transparent border-none">
-                        <CardContent className="flex flex-col aspect-square items-center justify-center p-0 relative group">
-                           <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                           <Image
-                              src={item.imageURL || 'https://placehold.co/600x800.png'}
-                              alt={item.caption || 'Achievement image'}
-                              width={600}
-                              height={800}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 relative rounded-lg"
-                              data-ai-hint="fitness transformation"
-                            />
-                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                           <p className="absolute bottom-4 left-4 text-white text-sm font-medium">{item.caption}</p>
-                           {item.transformationPeriod && (
-                             <Badge className="absolute bottom-4 right-4 bg-primary/80 backdrop-blur-sm">
-                                <Clock className="mr-1.5 h-3 w-3" />
-                                {item.transformationPeriod} Months
-                             </Badge>
-                           )}
+                        <CardContent className="flex flex-col aspect-square items-center justify-center p-0 relative">
+                          <div className="relative group w-full h-full">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                            <Image
+                                src={item.imageURL || 'https://placehold.co/600x800.png'}
+                                alt={item.caption || 'Achievement image'}
+                                width={600}
+                                height={800}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 relative rounded-lg"
+                                data-ai-hint="fitness transformation"
+                              />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-lg"></div>
+                            <div className="absolute bottom-4 left-4 text-white text-sm font-medium pr-16">{item.caption}</div>
+                            {item.transformationPeriod && (
+                              <Badge className="absolute bottom-4 right-4 bg-primary/80 backdrop-blur-sm">
+                                  <Clock className="mr-1.5 h-3 w-3" />
+                                  {item.transformationPeriod} Months
+                              </Badge>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     </div>
