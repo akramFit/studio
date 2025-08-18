@@ -38,7 +38,7 @@ const AchievementsSection = () => {
         const querySnapshot = await getDocs(q);
         const itemsData = querySnapshot.docs
             .map(doc => ({ id: doc.id, ...doc.data() } as AchievementItem))
-            .filter(item => item.visible);
+            .filter(item => item.visible !== false); // Keep if visible is true or undefined
         setAchievements(itemsData);
       } catch (error) {
         console.error("Error fetching achievements data: ", error);
@@ -50,11 +50,11 @@ const AchievementsSection = () => {
   }, []);
 
   return (
-    <section id="achievements" className="py-20 md:py-32 bg-background">
+    <section id="achievements" className="py-20 md:py-32 bg-black">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-headline font-bold text-foreground">Client Transformations & Achievements</h2>
-          <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Real clients, real results. A showcase of dedication and hard work.</p>
+          <h2 className="text-3xl md:text-4xl font-headline font-bold text-white">Client Transformations & Achievements</h2>
+          <p className="text-slate-300 mt-2 max-w-2xl mx-auto">Real clients, real results. A showcase of dedication and hard work.</p>
         </div>
         
         {loading ? (
@@ -68,14 +68,15 @@ const AchievementsSection = () => {
                 {achievements.map((item) => (
                   <CarouselItem key={item.id}>
                     <div className="p-1">
-                      <Card className="overflow-hidden">
+                      <Card className="overflow-hidden bg-transparent border-none">
                         <CardContent className="flex flex-col aspect-square items-center justify-center p-0 relative group">
+                           <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
                            <Image
                               src={item.imageURL || 'https://placehold.co/600x800.png'}
                               alt={item.caption || 'Achievement image'}
                               width={600}
                               height={800}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 relative rounded-lg"
                               data-ai-hint="fitness transformation"
                             />
                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
