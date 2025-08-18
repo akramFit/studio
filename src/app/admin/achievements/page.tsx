@@ -135,7 +135,7 @@ const AchievementsPage = () => {
                         <FormItem><FormLabel>Caption</FormLabel><FormControl><Textarea placeholder="Client's name..." {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                      <FormField control={form.control} name="transformationPeriod" render={({ field }) => (
-                        <FormItem><FormLabel>Transformation Period (Months)</FormLabel><FormControl><Input type="number" placeholder="e.g., 6" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Transformation Period (Months)</FormLabel><FormControl><Input type="number" placeholder="e.g., 6" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <Button type="submit" disabled={isSubmitting} className="w-full">
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
