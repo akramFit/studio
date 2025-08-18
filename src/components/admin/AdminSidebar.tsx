@@ -46,8 +46,9 @@ const AdminSidebar = () => {
   return (
     <aside className="w-64 flex-shrink-0 bg-card border-r flex flex-col">
       <div className="h-20 flex items-center justify-center px-6 border-b">
-        <Link href="/admin" className="flex items-center gap-2">
-          <span className="text-lg font-headline font-bold">Admin Panel</span>
+        <Link href="/admin" className="flex flex-col items-center text-center">
+          <span className="text-xl font-bebas tracking-wider font-bold">Akram Fit Training</span>
+          <span className="text-xs text-muted-foreground">Admin Panel</span>
         </Link>
       </div>
       <nav className="flex-1 px-4 py-6 space-y-2">
