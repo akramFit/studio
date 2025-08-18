@@ -42,7 +42,7 @@ const Navbar = () => {
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2" aria-label="Akram Fit Training Home">
           
-          <span className="text-xl font-headline font-bold text-foreground">Akram Fit Training</span>
+          <span className="text-xl font-anton font-bold text-foreground">Akram Fit Training</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
           {navLinks.map(({ href, label }) => (
@@ -66,7 +66,7 @@ const Navbar = () => {
               <div className="flex flex-col gap-6 p-6">
                 <Link href="/" className="flex items-center gap-2 mb-4" aria-label="Akram Fit Training Home">
                    
-                   <span className="text-xl font-headline font-bold">Akram Fit Training</span>
+                   <span className="text-xl font-anton font-bold">Akram Fit Training</span>
                 </Link>
                 {navLinks.map(({ href, label }) => (
                   <Link key={href} href={href} className="text-lg font-medium text-foreground transition-colors hover:text-primary">
