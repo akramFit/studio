@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, User, Calendar, ShieldCheck, Clock, Target } from 'lucide-react';
+import { Loader2, User, Calendar, ShieldCheck, Clock, Target, PauseCircle } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
@@ -28,7 +28,7 @@ interface ClientInfo {
     fullName: string;
     plan: string;
     endDate: any;
-    isActive: boolean;
+    status: 'active' | 'paused';
     daysLeft: number;
     currentGoalTitle?: string;
     targetMetric?: string;
@@ -56,19 +56,18 @@ const MembershipPage = () => {
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        toast({ title: 'Not Found', description: 'No active membership found with that code.', variant: 'destructive' });
+        toast({ title: 'Not Found', description: 'No membership found with that code.', variant: 'destructive' });
       } else {
         const clientData = querySnapshot.docs[0].data();
         const endDate = clientData.endDate.toDate();
         const daysLeft = differenceInDays(endDate, new Date());
-        const isActive = daysLeft >= 0;
-
+        
         setClientInfo({
             fullName: clientData.fullName,
             plan: clientData.plan,
             endDate: clientData.endDate,
-            isActive,
-            daysLeft,
+            status: clientData.status || 'active',
+            daysLeft: daysLeft < 0 ? 0 : daysLeft,
             currentGoalTitle: clientData.currentGoalTitle,
             targetMetric: clientData.targetMetric,
             targetValue: clientData.targetValue,
@@ -91,6 +90,16 @@ const MembershipPage = () => {
     if (days < 10) return "text-red-500";
     if (days < 20) return "text-yellow-500";
     return "text-green-500";
+  };
+  
+  const getStatusInfo = (client: ClientInfo) => {
+    if (client.status === 'paused') {
+      return { text: 'Paused', color: 'bg-gray-500' };
+    }
+    if (client.daysLeft <= 0) {
+      return { text: 'Expired', color: 'bg-red-500' };
+    }
+    return { text: 'Active', color: 'bg-green-500' };
   };
 
   return (
@@ -129,18 +138,24 @@ const MembershipPage = () => {
                     <div className="mt-8 pt-6 border-t border-border">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold text-primary">Membership Details</h3>
-                             <Badge className={cn(clientInfo.isActive ? "bg-green-500" : "bg-red-500", "text-white")}>
-                                {clientInfo.isActive ? "Active" : "Expired"}
+                             <Badge className={cn(getStatusInfo(clientInfo).color, "text-white")}>
+                                {getStatusInfo(clientInfo).text}
                             </Badge>
                         </div>
                         <div className="space-y-3 text-sm">
                             <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>{clientInfo.fullName}</span></div>
                             <div className="flex items-center gap-3"><ShieldCheck className="h-4 w-4 text-muted-foreground" /> <span>Plan: {clientInfo.plan}</span></div>
                             <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Expires: {clientInfo.endDate ? format(clientInfo.endDate.toDate(), 'PPP') : 'N/A'}</span></div>
-                             {clientInfo.isActive && (
+                             {clientInfo.status === 'active' && clientInfo.daysLeft > 0 && (
                                 <div className={cn("flex items-center gap-3 font-medium", getDaysLeftColor(clientInfo.daysLeft))}>
                                     <Clock className="h-4 w-4" /> 
                                     <span>{clientInfo.daysLeft} days remaining</span>
+                                </div>
+                             )}
+                              {clientInfo.status === 'paused' && (
+                                <div className="flex items-center gap-3 font-medium text-gray-400">
+                                    <PauseCircle className="h-4 w-4" /> 
+                                    <span>Membership is currently paused.</span>
                                 </div>
                              )}
                         </div>
