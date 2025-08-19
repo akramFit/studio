@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, addDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -63,11 +63,14 @@ const OrdersPage = () => {
   const handleApprove = async (order: Order) => {
     setActionLoading(prev => ({ ...prev, [order.id]: true }));
     try {
+        const batch = writeBatch(db);
+
         const durationMonths = order.subscriptionDuration || 1;
         const startDate = new Date();
         const endDate = addMonths(startDate, durationMonths);
 
-        const newClientRef = await addDoc(collection(db, 'clients'), {
+        const newClientRef = doc(collection(db, 'clients'));
+        batch.set(newClientRef, {
             fullName: order.fullName,
             email: order.email,
             phoneNumber: order.phoneNumber,
@@ -77,16 +80,31 @@ const OrdersPage = () => {
             primaryGoal: order.primaryGoal,
             notes: order.injuriesOrNotes,
             createdAt: serverTimestamp(),
-            status: 'active', // Set initial status to active
+            status: 'active',
+            membershipCode: newClientRef.id.substring(0, 8).toUpperCase(),
         });
 
-        const membershipCode = newClientRef.id.substring(0, 8).toUpperCase();
-        await updateDoc(doc(db, 'clients', newClientRef.id), { membershipCode });
+        // Add to transactions for financial tracking
+        if (order.finalPrice && order.finalPrice > 0) {
+            const transactionRef = doc(collection(db, 'transactions'));
+            batch.set(transactionRef, {
+                description: `Subscription: ${order.fullName}`,
+                amount: order.finalPrice,
+                date: serverTimestamp(),
+                clientId: newClientRef.id,
+            });
+        }
+        
+        // Delete the original order
+        const orderRef = doc(db, 'orders', order.id);
+        batch.delete(orderRef);
+        
+        await batch.commit();
 
-        await deleteDoc(doc(db, 'orders', order.id));
         toast({ title: "Success", description: `${order.fullName} has been approved and moved to clients.` });
         fetchOrders();
     } catch (error) {
+        console.error("Approval error:", error);
         toast({ title: "Error", description: "Failed to approve order.", variant: "destructive" });
     } finally {
         setActionLoading(prev => ({ ...prev, [order.id]: false }));
@@ -209,3 +227,5 @@ const OrdersPage = () => {
 };
 
 export default OrdersPage;
+
+    

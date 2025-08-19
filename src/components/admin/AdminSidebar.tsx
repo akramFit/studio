@@ -14,6 +14,7 @@ import {
   LogOut,
   Inbox,
   Tag,
+  Banknote,
 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/orders', label: 'Orders', icon: Inbox },
   { href: '/admin/clients', label: 'Clients', icon: Users },
+  { href: '/admin/finance', label: 'Finance', icon: Banknote },
   { href: '/admin/gallery', label: 'Gallery', icon: GalleryHorizontal },
   { href: '/admin/achievements', label: 'Achievements', icon: Trophy },
   { href: '/admin/pricing', label: 'Pricing', icon: DollarSign },
@@ -57,7 +59,7 @@ const AdminSidebar = () => {
         {navItems.map((item) => (
           <Link key={item.href} href={item.href}>
             <Button
-              variant={pathname === item.href ? 'secondary' : 'ghost'}
+              variant={pathname.startsWith(item.href) && (item.href !== '/admin' || pathname === '/admin') ? 'secondary' : 'ghost'}
               className="w-full justify-start"
             >
               <item.icon className="mr-2 h-4 w-4" />
@@ -77,3 +79,5 @@ const AdminSidebar = () => {
 };
 
 export default AdminSidebar;
+
+    
