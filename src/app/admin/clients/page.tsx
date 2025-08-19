@@ -3,15 +3,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Trash2, MessageSquare, Loader2, RefreshCw, Copy } from 'lucide-react';
+import { Eye, Trash2, MessageSquare, Loader2, RefreshCw, Copy, CalendarPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, add } from 'date-fns';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +23,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Client {
@@ -38,6 +49,9 @@ interface Client {
 const ClientsPage = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [daysToAdd, setDaysToAdd] = useState<number>(0);
+  const [isAddDaysDialogOpen, setIsAddDaysDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -69,6 +83,29 @@ const ClientsPage = () => {
     }
   };
 
+  const handleAddDays = async () => {
+    if (!selectedClient || daysToAdd <= 0) {
+        toast({ title: 'Invalid Input', description: 'Please select a client and enter a valid number of days.', variant: 'destructive' });
+        return;
+    }
+    try {
+        const clientRef = doc(db, 'clients', selectedClient.id);
+        const currentEndDate = selectedClient.endDate.toDate();
+        const newEndDate = add(currentEndDate, { days: daysToAdd });
+        
+        await updateDoc(clientRef, { endDate: newEndDate });
+        
+        toast({ title: 'Success', description: `${daysToAdd} days added to ${selectedClient.fullName}'s membership.` });
+        setIsAddDaysDialogOpen(false);
+        setDaysToAdd(0);
+        setSelectedClient(null);
+        fetchClients();
+    } catch (error) {
+        toast({ title: 'Error', description: 'Failed to extend membership.', variant: 'destructive' });
+    }
+  };
+
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copied!", description: "Membership code copied to clipboard." });
@@ -82,6 +119,12 @@ const ClientsPage = () => {
     if (days <= 7) return { text: `${days} days left`, color: 'bg-yellow-500' };
     return { text: `${days} days left`, color: 'bg-green-500' };
   };
+  
+  const openAddDaysDialog = (client: Client) => {
+    setSelectedClient(client);
+    setIsAddDaysDialogOpen(true);
+  };
+
 
   return (
     <Card>
@@ -152,6 +195,14 @@ const ClientsPage = () => {
                               </TooltipTrigger>
                               <TooltipContent><p>View Details</p></TooltipContent>
                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button size="icon" variant="ghost" onClick={() => openAddDaysDialog(client)}>
+                                        <CalendarPlus className="h-4 w-4 text-blue-500" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Extend Membership</p></TooltipContent>
+                            </Tooltip>
                            <Tooltip>
                              <TooltipTrigger asChild>
                                 <a href={`https://wa.me/${client.phoneNumber.replace(/\s+/g, '')}`} target="_blank" rel="noopener noreferrer">
@@ -192,6 +243,34 @@ const ClientsPage = () => {
                 )}
               </TableBody>
             </Table>
+             <Dialog open={isAddDaysDialogOpen} onOpenChange={setIsAddDaysDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Extend Membership for {selectedClient?.fullName}</DialogTitle>
+                        <DialogDescription>
+                            Enter the number of days to add to the current plan. The current plan expires on {selectedClient?.endDate ? format(selectedClient.endDate.toDate(), 'PPP') : 'N/A'}.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="days" className="text-right">
+                                Days to Add
+                            </Label>
+                            <Input
+                                id="days"
+                                type="number"
+                                value={daysToAdd}
+                                onChange={(e) => setDaysToAdd(parseInt(e.target.value, 10) || 0)}
+                                className="col-span-3"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddDaysDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleAddDays}>Add Days</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
           </TooltipProvider>
         )}
       </CardContent>
