@@ -52,6 +52,8 @@ const durationOptions = [
     { value: 12, label: "1 Year", discount: 0.20 },
 ];
 
+const DZD_TO_USD_RATE = 1 / 135;
+
 const SubscriptionForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -138,6 +140,8 @@ const SubscriptionForm = () => {
       setIsSubmitting(false);
     }
   };
+
+  const totalPriceUSD = totalPrice !== null ? Math.round(totalPrice * DZD_TO_USD_RATE) : null;
 
   return (
     <section id="subscription-form" className="py-20 md:py-32 bg-black">
@@ -281,7 +285,12 @@ const SubscriptionForm = () => {
                     <div className="pt-4 border-t-2 border-dashed border-border">
                         <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
                             <span className="text-lg font-semibold text-foreground">Total Price:</span>
-                            <span className="text-2xl font-bold text-primary">{totalPrice.toLocaleString()} DZD</span>
+                            <div className="text-right">
+                                <span className="text-2xl font-bold text-primary">{totalPrice.toLocaleString()} DZD</span>
+                                {totalPriceUSD !== null && (
+                                  <p className="text-sm text-muted-foreground">(approx. ${totalPriceUSD.toLocaleString()} USD)</p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

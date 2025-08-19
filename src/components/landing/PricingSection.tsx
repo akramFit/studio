@@ -112,9 +112,9 @@ const PricingSection = () => {
                     </CardContent>
                     <CardFooter className="flex-col items-stretch pt-6">
                       <div className="text-center mb-4 text-white">
-                          <span className="text-2xl font-bold">{plan.price} DZD</span>
+                          <span className="text-2xl font-bold">{plan.price.toLocaleString()} DZD</span>
                           <span className="text-sm text-slate-400">/ month</span>
-                          <p className="text-xs text-slate-400">(approx. ${priceUSD} USD)</p>
+                          <p className="text-xs text-slate-400 mt-1">(approx. ${priceUSD} USD)</p>
                       </div>
                       <Button asChild className={cn("w-full", plan.mostPopular && "bg-accent hover:bg-accent/90")} size="lg">
                         <Link href="#subscription-form">Get Started</Link>
