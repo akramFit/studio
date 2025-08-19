@@ -50,9 +50,6 @@ const Navbar = () => {
               {label}
             </Link>
           ))}
-          <Button asChild variant="outline">
-            <Link href="/login">Admin</Link>
-          </Button>
         </nav>
         <div className="md:hidden">
           <Sheet>
@@ -73,9 +70,6 @@ const Navbar = () => {
                     {label}
                   </Link>
                 ))}
-                <Button asChild className="mt-4">
-                  <Link href="/login">Admin</Link>
-                </Button>
               </div>
             </SheetContent>
           </Sheet>
