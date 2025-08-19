@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Trash2, MessageSquare, Loader2, RefreshCw, Copy, CalendarPlus } from 'lucide-react';
+import { Eye, Trash2, MessageSquare, Loader2, RefreshCw, Copy, CalendarPlus, PauseCircle, PlayCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format, differenceInDays, add } from 'date-fns';
 import {
@@ -35,6 +35,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 
 interface Client {
   id: string;
@@ -44,6 +46,8 @@ interface Client {
   startDate: any;
   endDate: any;
   membershipCode?: string;
+  status: 'active' | 'paused';
+  daysLeftOnPause?: number;
 }
 
 const ClientsPage = () => {
@@ -112,9 +116,12 @@ const ClientsPage = () => {
   };
 
 
-  const getDaysLeft = (endDate: any) => {
-    if (!endDate) return { text: 'N/A', color: 'bg-gray-500' };
-    const days = differenceInDays(endDate.toDate(), new Date());
+  const getDaysLeft = (client: Client) => {
+    if (client.status === 'paused') return { text: 'Paused', color: 'bg-gray-500' };
+    if (!client.endDate) return { text: 'N/A', color: 'bg-gray-500' };
+    
+    const days = differenceInDays(client.endDate.toDate(), new Date());
+
     if (days < 0) return { text: 'Expired', color: 'bg-red-500' };
     if (days < 10) return { text: `${days} days left`, color: 'bg-red-500' };
     if (days < 20) return { text: `${days} days left`, color: 'bg-yellow-500' };
@@ -125,7 +132,38 @@ const ClientsPage = () => {
     setSelectedClient(client);
     setIsAddDaysDialogOpen(true);
   };
-
+  
+  const handleStatusToggle = async (client: Client) => {
+    const clientRef = doc(db, 'clients', client.id);
+    if (client.status === 'active') {
+      // Pause the membership
+      const daysLeft = differenceInDays(client.endDate.toDate(), new Date());
+      try {
+        await updateDoc(clientRef, {
+          status: 'paused',
+          daysLeftOnPause: daysLeft > 0 ? daysLeft : 0,
+        });
+        toast({ title: 'Membership Paused', description: `${client.fullName}'s membership has been paused.` });
+        fetchClients();
+      } catch (error) {
+        toast({ title: 'Error', description: 'Failed to pause membership.', variant: 'destructive' });
+      }
+    } else {
+      // Resume the membership
+      const newEndDate = add(new Date(), { days: client.daysLeftOnPause || 0 });
+      try {
+        await updateDoc(clientRef, {
+          status: 'active',
+          endDate: newEndDate,
+          daysLeftOnPause: 0,
+        });
+        toast({ title: 'Membership Resumed', description: `${client.fullName}'s membership is now active.` });
+        fetchClients();
+      } catch (error) {
+        toast({ title: 'Error', description: 'Failed to resume membership.', variant: 'destructive' });
+      }
+    }
+  };
 
   return (
     <Card>
@@ -151,41 +189,55 @@ const ClientsPage = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Membership Code</TableHead>
                   <TableHead>Plan</TableHead>
                   <TableHead>End Date</TableHead>
+                  <TableHead>Days Left</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {clients.length > 0 ? clients.map((client) => {
-                  const daysLeftInfo = getDaysLeft(client.endDate);
+                  const daysLeftInfo = getDaysLeft(client);
+                  const isActive = client.status === 'active';
                   return (
                     <TableRow key={client.id}>
-                      <TableCell className="font-medium">{client.fullName}</TableCell>
-                      <TableCell>
-                        {client.membershipCode ? (
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary">{client.membershipCode}</Badge>
+                      <TableCell className="font-medium">
+                        {client.fullName}
+                        {client.membershipCode && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <span>{client.membershipCode}</span>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(client.membershipCode!)}>
+                                    <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => copyToClipboard(client.membershipCode!)}>
                                         <Copy className="h-3 w-3" />
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Copy Code</p>
-                                </TooltipContent>
+                                <TooltipContent><p>Copy Code</p></TooltipContent>
                             </Tooltip>
                           </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">N/A</span>
                         )}
                       </TableCell>
                       <TableCell><Badge variant="outline">{client.plan}</Badge></TableCell>
                       <TableCell>{client.endDate ? format(client.endDate.toDate(), 'PPP') : 'N/A'}</TableCell>
                       <TableCell><Badge className={`${daysLeftInfo.color}`}>{daysLeftInfo.text}</Badge></TableCell>
+                      <TableCell>
+                        <Tooltip>
+                           <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2">
+                                     <Switch
+                                        checked={isActive}
+                                        onCheckedChange={() => handleStatusToggle(client)}
+                                        aria-readonly
+                                    />
+                                    <span className={cn("text-sm font-medium", isActive ? "text-green-500" : "text-gray-500")}>
+                                        {isActive ? 'Active' : 'Paused'}
+                                    </span>
+                                </div>
+                           </TooltipTrigger>
+                           <TooltipContent><p>{isActive ? "Click to pause membership" : "Click to resume membership"}</p></TooltipContent>
+                        </Tooltip>
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-2 justify-end">
                            <Tooltip>

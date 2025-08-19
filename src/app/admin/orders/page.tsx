@@ -60,7 +60,7 @@ const OrdersPage = () => {
   const handleApprove = async (order: Order) => {
     setActionLoading(prev => ({ ...prev, [order.id]: true }));
     try {
-        const planDetails: { [key: string]: number } = { "Monthly": 30, "3-Months": 90, "6-Months": 180 };
+        const planDetails: { [key: string]: number } = { "Personal Training": 30, "Online Coaching": 30, "Online VIP": 30 }; // Assuming all are monthly for now
         const durationDays = planDetails[order.preferredPlan] || 30;
         const startDate = new Date();
         const endDate = new Date();
@@ -76,6 +76,7 @@ const OrdersPage = () => {
             primaryGoal: order.primaryGoal,
             notes: order.injuriesOrNotes,
             createdAt: serverTimestamp(),
+            status: 'active', // Set initial status to active
         });
 
         const membershipCode = newClientRef.id.substring(0, 8).toUpperCase();
