@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Eye, Trash2, MessageSquare, Loader2, RefreshCw, Copy, CalendarPlus, PauseCircle, PlayCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { format, differenceInCalendarDays, add } from 'date-fns';
+import { format, differenceInCalendarDays, add, startOfDay } from 'date-fns';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -120,7 +120,8 @@ const ClientsPage = () => {
     if (client.status === 'paused') return { text: 'Paused', color: 'bg-gray-500' };
     if (!client.endDate) return { text: 'N/A', color: 'bg-gray-500' };
     
-    const days = differenceInCalendarDays(client.endDate.toDate(), new Date());
+    // Compare start of day to avoid timezone/timing issues of losing a day
+    const days = differenceInCalendarDays(startOfDay(client.endDate.toDate()), startOfDay(new Date()));
 
     if (days < 0) return { text: 'Expired', color: 'bg-red-500' };
     if (days < 10) return { text: `${days} days left`, color: 'bg-red-500' };
@@ -137,11 +138,11 @@ const ClientsPage = () => {
     const clientRef = doc(db, 'clients', client.id);
     if (client.status === 'active') {
       // Pause the membership
-      const daysLeft = differenceInCalendarDays(client.endDate.toDate(), new Date());
+      const daysLeft = differenceInCalendarDays(startOfDay(client.endDate.toDate()), startOfDay(new Date()));
       try {
         await updateDoc(clientRef, {
           status: 'paused',
-          daysLeftOnPause: daysLeft > 0 ? daysLeft : 0,
+          daysLeftOnPause: daysLeft >= 0 ? daysLeft : 0,
         });
         toast({ title: 'Membership Paused', description: `${client.fullName}'s membership has been paused.` });
         fetchClients();
@@ -150,7 +151,7 @@ const ClientsPage = () => {
       }
     } else {
       // Resume the membership
-      const newEndDate = add(new Date(), { days: client.daysLeftOnPause || 0 });
+      const newEndDate = add(startOfDay(new Date()), { days: client.daysLeftOnPause || 0 });
       try {
         await updateDoc(clientRef, {
           status: 'active',
@@ -332,5 +333,3 @@ const ClientsPage = () => {
 };
 
 export default ClientsPage;
-
-    
