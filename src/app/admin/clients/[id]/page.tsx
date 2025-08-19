@@ -38,7 +38,7 @@ const ClientDetailPage = () => {
     const { toast } = useToast();
     const params = useParams();
     const router = useRouter();
-    const { id } = params;
+    const id = params.id as string;
 
     const fetchClient = useCallback(async (forceRefresh = false) => {
         if (!id) return;
@@ -46,7 +46,7 @@ const ClientDetailPage = () => {
             setLoading(true);
         }
         try {
-            const docRef = doc(db, 'clients', id as string);
+            const docRef = doc(db, 'clients', id);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
