@@ -59,7 +59,7 @@ const PricingSection = () => {
           <p className="text-slate-300 mt-2 max-w-2xl mx-auto">Invest in yourself. Flexible plans designed for serious results.</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
           {loading ? (
             Array.from({ length: 3 }).map((_, index) => (
               <Card key={index} className="flex flex-col shadow-lg bg-slate-900/50 border-slate-800">
