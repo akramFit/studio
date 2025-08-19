@@ -28,6 +28,7 @@ const formSchema = z.object({
   otherGoal: z.string().optional(),
   injuriesOrNotes: z.string().optional(),
   preferredPlan: z.string().min(1, "Please select a plan."),
+  subscriptionDuration: z.coerce.number().int().min(1, "Please select a duration."),
 }).refine(data => {
     if (data.primaryGoal === 'other') {
         return data.otherGoal && data.otherGoal.trim().length > 0;
@@ -43,6 +44,14 @@ const plans = [
     { id: "2", name: "Online Coaching" },
     { id: "3", name: "Online VIP" },
 ];
+
+const durationOptions = [
+    { value: 1, label: "1 Month" },
+    { value: 3, label: "3 Months" },
+    { value: 6, label: "6 Months" },
+    { value: 12, label: "1 Year" },
+];
+
 
 const SubscriptionForm = () => {
   const { toast } = useToast();
@@ -60,6 +69,7 @@ const SubscriptionForm = () => {
       experienceLevel: undefined,
       primaryGoal: undefined,
       preferredPlan: undefined,
+      subscriptionDuration: 1,
       injuriesOrNotes: "",
       otherGoal: "",
     },
@@ -200,21 +210,37 @@ const SubscriptionForm = () => {
                     )}
                   />
                 )}
-
-                <FormField control={form.control} name="preferredPlan" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Preferred Plan</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Select a coaching plan" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        {plans.map(plan => (
-                          <SelectItem key={plan.id} value={plan.name}>{plan.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <FormField control={form.control} name="preferredPlan" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Preferred Plan</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Select a coaching plan" /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            {plans.map(plan => (
+                              <SelectItem key={plan.id} value={plan.name}>{plan.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="subscriptionDuration" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Subscription Duration</FormLabel>
+                            <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={String(field.value)}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a duration" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    {durationOptions.map(option => (
+                                        <SelectItem key={option.value} value={String(option.value)}>{option.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}/>
+                </div>
                 <FormField control={form.control} name="injuriesOrNotes" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Any Injuries or Important Notes?</FormLabel>

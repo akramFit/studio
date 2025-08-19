@@ -21,13 +21,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 
 interface Order {
   id: string;
   fullName: string;
   email: string;
   preferredPlan: string;
+  subscriptionDuration: number;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: any;
   [key: string]: any;
@@ -60,11 +61,9 @@ const OrdersPage = () => {
   const handleApprove = async (order: Order) => {
     setActionLoading(prev => ({ ...prev, [order.id]: true }));
     try {
-        const planDetails: { [key: string]: number } = { "Personal Training": 30, "Online Coaching": 30, "Online VIP": 30 }; // Assuming all are monthly for now
-        const durationDays = planDetails[order.preferredPlan] || 30;
+        const durationMonths = order.subscriptionDuration || 1;
         const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(startDate.getDate() + durationDays);
+        const endDate = addMonths(startDate, durationMonths);
 
         const newClientRef = await addDoc(collection(db, 'clients'), {
             fullName: order.fullName,
@@ -104,6 +103,12 @@ const OrdersPage = () => {
       setActionLoading(prev => ({ ...prev, [orderId]: false }));
     }
   };
+  
+  const getDurationText = (months: number) => {
+    if (months === 12) return "1 Year";
+    if (months === 1) return "1 Month";
+    return `${months} Months`;
+  }
 
   return (
     <Card>
@@ -129,6 +134,7 @@ const OrdersPage = () => {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Plan</TableHead>
+                <TableHead>Duration</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -142,6 +148,9 @@ const OrdersPage = () => {
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">{order.preferredPlan}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{getDurationText(order.subscriptionDuration)}</Badge>
                   </TableCell>
                   <TableCell>
                      {order.createdAt ? format(order.createdAt.toDate(), 'PPP') : 'N/A'}
@@ -175,7 +184,7 @@ const OrdersPage = () => {
                 </TableRow>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">No pending orders found.</TableCell>
+                  <TableCell colSpan={5} className="text-center">No pending orders found.</TableCell>
                 </TableRow>
               )}
             </TableBody>
