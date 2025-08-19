@@ -1,16 +1,17 @@
 
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow public read access for membership check
-    match /clients/{clientId} {
-      allow get, list: if true;
-      allow write: if request.auth != null;
+    // Default rule: only authenticated users can access any data.
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
 
-    // Restrict all other collections to authenticated users
-    match /{path=**}/documents/{document} {
-      allow read, write: if request.auth != null;
+    // Override for clients collection: allow public read for membership check.
+    match /clients/{clientId} {
+      allow get, list: if true;
+      allow create, update, delete: if request.auth != null;
     }
   }
 }
