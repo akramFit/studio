@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Logo from './Logo';
@@ -20,6 +20,7 @@ const navLinks = [
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -42,7 +43,7 @@ const Navbar = () => {
     )}>
       <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2" aria-label="Akram Fit Training Home">
-          
+          <Logo className="h-8 w-8 text-primary" />
           <span className="text-xl font-bebas tracking-wider font-bold text-foreground">Akram Fit Training</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
@@ -56,7 +57,7 @@ const Navbar = () => {
            </Button>
         </nav>
         <div className="md:hidden">
-          <Sheet>
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Menu className="h-6 w-6" />
@@ -64,22 +65,26 @@ const Navbar = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
-              <SheetHeader>
-                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-              </SheetHeader>
+                <SheetHeader>
+                    <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                </SheetHeader>
               <div className="flex flex-col gap-6 p-6">
-                <Link href="/" className="flex items-center gap-2 mb-4" aria-label="Akram Fit Training Home">
-                   
+                <Link href="/" className="flex items-center gap-2 mb-4" aria-label="Akram Fit Training Home" onClick={() => setIsMobileMenuOpen(false)}>
+                   <Logo className="h-8 w-8 text-primary" />
                    <span className="text-xl font-bebas tracking-wider font-bold">Akram Fit Training</span>
                 </Link>
                 {navLinks.map(({ href, label }) => (
-                  <Link key={href} href={href} className="text-lg font-medium text-foreground transition-colors hover:text-primary">
-                    {label}
-                  </Link>
+                   <SheetClose asChild key={href}>
+                        <Link href={href} className="text-lg font-medium text-foreground transition-colors hover:text-primary">
+                            {label}
+                        </Link>
+                   </SheetClose>
                 ))}
-                 <Button asChild variant="outline">
-                    <Link href="/membership">Membership</Link>
-                 </Button>
+                 <SheetClose asChild>
+                    <Button asChild variant="outline">
+                        <Link href="/membership">Membership</Link>
+                    </Button>
+                 </SheetClose>
               </div>
             </SheetContent>
           </Sheet>

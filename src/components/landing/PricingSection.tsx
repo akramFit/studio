@@ -84,7 +84,7 @@ const PricingSection = () => {
               const Icon = iconMap[plan.name] || Flame;
               const priceUSD = Math.round(plan.price * DZD_TO_USD_RATE);
               return (
-                <div key={plan.id} className={cn("relative group", plan.mostPopular && "scale-105")}>
+                <div key={plan.id} className={cn("relative group", plan.mostPopular && "md:scale-105")}>
                   <div className={cn("absolute -inset-0.5 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-60 transition duration-1000 group-hover:duration-200", plan.mostPopular && "opacity-60")}></div>
                   <Card className={cn(`relative flex flex-col shadow-lg transition-transform h-full bg-slate-900/80 border-slate-800 backdrop-blur-sm`, plan.mostPopular && "border-primary shadow-primary/20")}>
                     {plan.mostPopular && (
