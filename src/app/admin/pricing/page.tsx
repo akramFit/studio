@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Trash2, Edit, PlusCircle, Loader2, RefreshCw, Star } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const planSchema = z.object({
@@ -117,6 +118,24 @@ const PricingPage = () => {
   };
   
   const DZD_TO_USD_RATE = 1 / 135;
+  
+  const SkeletonPlan = () => (
+    <div className="flex items-start justify-between p-4 border rounded-lg">
+        <div>
+            <Skeleton className="h-6 w-40 mb-2" />
+            <Skeleton className="h-5 w-52 mb-3" />
+            <div className="space-y-2">
+                <Skeleton className="h-4 w-64" />
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-4 w-56" />
+            </div>
+        </div>
+        <div className="flex gap-2">
+            <Skeleton className="h-10 w-10" />
+            <Skeleton className="h-10 w-10" />
+        </div>
+    </div>
+  );
 
   return (
     <Card>
@@ -180,7 +199,12 @@ const PricingPage = () => {
         </div>
       </CardHeader>
       <CardContent>
-        {loading ? <div className="flex justify-center py-10"><Loader2 className="h-8 w-8 animate-spin"/></div> : (
+        {loading ? (
+            <div className="space-y-4">
+                <SkeletonPlan />
+                <SkeletonPlan />
+            </div>
+        ) : (
           <div className="space-y-4">
             {plans.map(p => {
               const usdPrice = Math.round(p.price * DZD_TO_USD_RATE);

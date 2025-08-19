@@ -22,6 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { format, addMonths } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Order {
   id: string;
@@ -129,6 +130,33 @@ const OrdersPage = () => {
     if (months === 1) return "1 Month";
     return `${months} Months`;
   }
+  
+  const SkeletonTable = () => (
+     <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Plan</TableHead>
+          <TableHead>Duration</TableHead>
+          <TableHead>Final Price</TableHead>
+          <TableHead>Promo</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <TableRow key={index}>
+            <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+            <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto" /></TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
 
   return (
     <Card>
@@ -145,9 +173,7 @@ const OrdersPage = () => {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="flex justify-center items-center py-10">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
+          <SkeletonTable />
         ) : (
           <Table>
             <TableHeader>
@@ -165,7 +191,7 @@ const OrdersPage = () => {
                 <TableRow key={order.id}>
                   <TableCell>
                     <div className="font-medium">{order.fullName}</div>
-                    <div className="text-sm text-muted-foreground">{format(order.createdAt.toDate(), 'PPP')}</div>
+                    <div className="text-sm text-muted-foreground">{order.createdAt ? format(order.createdAt.toDate(), 'PPP') : ''}</div>
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">{order.preferredPlan}</Badge>
@@ -227,5 +253,3 @@ const OrdersPage = () => {
 };
 
 export default OrdersPage;
-
-    

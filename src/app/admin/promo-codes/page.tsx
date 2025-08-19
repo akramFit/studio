@@ -29,6 +29,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const promoCodeSchema = z.object({
   code: z.string().min(4, "Code must be at least 4 characters.").max(20, "Code is too long."),
@@ -120,6 +121,31 @@ const PromoCodesPage = () => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copied!", description: "Promo code copied to clipboard." });
   };
+  
+  const SkeletonTable = () => (
+     <Table>
+        <TableHeader>
+            <TableRow>
+                <TableHead>Code</TableHead>
+                <TableHead>Discount</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+        </TableHeader>
+        <TableBody>
+            {Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index}>
+                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                </TableRow>
+            ))}
+        </TableBody>
+    </Table>
+  );
 
 
   return (
@@ -185,7 +211,7 @@ const PromoCodesPage = () => {
       </CardHeader>
       <CardContent>
         {loading ? (
-            <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+            <SkeletonTable />
         ) : (
              <TooltipProvider>
                 <Table>

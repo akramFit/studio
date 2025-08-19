@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const achievementSchema = z.object({
   imageURL: z.string().url("Please enter a valid URL."),
@@ -106,6 +107,20 @@ const AchievementsPage = () => {
       toast({ title: 'Error', description: 'Failed to delete achievement.', variant: 'destructive' });
     }
   };
+  
+  const SkeletonGrid = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {Array.from({ length: 4 }).map((_, index) => (
+         <div key={index} className="border rounded-lg shadow space-y-2">
+            <Skeleton className="h-60 w-full" />
+            <div className="p-4 space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/4" />
+            </div>
+         </div>
+      ))}
+    </div>
+  );
 
   return (
     <Card>
@@ -153,9 +168,7 @@ const AchievementsPage = () => {
       </CardHeader>
       <CardContent>
         {loading ? (
-            <div className="flex justify-center items-center py-10">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
+            <SkeletonGrid />
         ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {achievements.map(item => (
