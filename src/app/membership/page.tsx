@@ -12,25 +12,29 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, User, Calendar, ShieldCheck } from 'lucide-react';
-import { format } from 'date-fns';
+import { Loader2, User, Calendar, ShieldCheck, Clock } from 'lucide-react';
+import { format, differenceInDays } from 'date-fns';
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   membershipCode: z.string().min(6, "Membership code is required."),
 });
 
-interface Client {
+interface ClientInfo {
     fullName: string;
     plan: string;
     endDate: any;
+    isActive: boolean;
+    daysLeft: number;
 }
 
 const MembershipPage = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [client, setClient] = useState<Client | null>(null);
+  const [clientInfo, setClientInfo] = useState<ClientInfo | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,7 +45,7 @@ const MembershipPage = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    setClient(null);
+    setClientInfo(null);
     try {
       const q = query(collection(db, 'clients'), where('membershipCode', '==', values.membershipCode.toUpperCase()));
       const querySnapshot = await getDocs(q);
@@ -49,8 +53,18 @@ const MembershipPage = () => {
       if (querySnapshot.empty) {
         toast({ title: 'Not Found', description: 'No active membership found with that code.', variant: 'destructive' });
       } else {
-        const clientData = querySnapshot.docs[0].data() as Client;
-        setClient(clientData);
+        const clientData = querySnapshot.docs[0].data();
+        const endDate = clientData.endDate.toDate();
+        const daysLeft = differenceInDays(endDate, new Date());
+        const isActive = daysLeft >= 0;
+
+        setClientInfo({
+            fullName: clientData.fullName,
+            plan: clientData.plan,
+            endDate: clientData.endDate,
+            isActive,
+            daysLeft,
+        });
       }
     } catch (error) {
       console.error(error);
@@ -96,13 +110,21 @@ const MembershipPage = () => {
                     </form>
                 </Form>
 
-                {client && (
+                {clientInfo && (
                     <div className="mt-8 pt-6 border-t border-border">
-                        <h3 className="text-lg font-semibold text-center mb-4 text-primary">Membership Details</h3>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold text-primary">Membership Details</h3>
+                             <Badge className={cn(clientInfo.isActive ? "bg-green-500" : "bg-red-500", "text-white")}>
+                                {clientInfo.isActive ? "Active" : "Expired"}
+                            </Badge>
+                        </div>
                         <div className="space-y-3 text-sm">
-                            <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>{client.fullName}</span></div>
-                            <div className="flex items-center gap-3"><ShieldCheck className="h-4 w-4 text-muted-foreground" /> <span>Plan: {client.plan}</span></div>
-                            <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Expires: {client.endDate ? format(client.endDate.toDate(), 'PPP') : 'N/A'}</span></div>
+                            <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>{clientInfo.fullName}</span></div>
+                            <div className="flex items-center gap-3"><ShieldCheck className="h-4 w-4 text-muted-foreground" /> <span>Plan: {clientInfo.plan}</span></div>
+                            <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Expires: {clientInfo.endDate ? format(clientInfo.endDate.toDate(), 'PPP') : 'N/A'}</span></div>
+                             {clientInfo.isActive && (
+                                <div className="flex items-center gap-3 text-primary font-medium"><Clock className="h-4 w-4" /> <span>{clientInfo.daysLeft} days remaining</span></div>
+                             )}
                         </div>
                     </div>
                 )}
