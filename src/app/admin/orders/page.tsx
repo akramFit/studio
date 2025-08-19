@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -65,7 +66,7 @@ const OrdersPage = () => {
         const endDate = new Date();
         endDate.setDate(startDate.getDate() + durationDays);
 
-        await addDoc(collection(db, 'clients'), {
+        const newClientRef = await addDoc(collection(db, 'clients'), {
             fullName: order.fullName,
             email: order.email,
             phoneNumber: order.phoneNumber,
@@ -76,6 +77,10 @@ const OrdersPage = () => {
             notes: order.injuriesOrNotes,
             createdAt: serverTimestamp(),
         });
+
+        const membershipCode = newClientRef.id.substring(0, 8).toUpperCase();
+        await updateDoc(doc(db, 'clients', newClientRef.id), { membershipCode });
+
         await deleteDoc(doc(db, 'orders', order.id));
         toast({ title: "Success", description: `${order.fullName} has been approved and moved to clients.` });
         fetchOrders();

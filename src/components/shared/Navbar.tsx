@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -9,11 +10,11 @@ import { cn } from '@/lib/utils';
 import Logo from './Logo';
 
 const navLinks = [
-  { href: '#about', label: 'About' },
-  { href: '#achievements', label: 'Achievements' },
-  { href: '#pricing', label: 'Pricing' },
-  { href: '#gallery', label: 'Gallery' },
-  { href: '#faq', label: 'FAQ' },
+  { href: '/#about', label: 'About' },
+  { href: '/#achievements', label: 'Achievements' },
+  { href: '/#pricing', label: 'Pricing' },
+  { href: '/#gallery', label: 'Gallery' },
+  { href: '/#faq', label: 'FAQ' },
 ];
 
 const Navbar = () => {
@@ -50,6 +51,9 @@ const Navbar = () => {
               {label}
             </Link>
           ))}
+           <Button asChild variant="outline" size="sm">
+             <Link href="/membership">Membership</Link>
+           </Button>
         </nav>
         <div className="md:hidden">
           <Sheet>
@@ -70,6 +74,9 @@ const Navbar = () => {
                     {label}
                   </Link>
                 ))}
+                 <Button asChild variant="outline">
+                    <Link href="/membership">Membership</Link>
+                 </Button>
               </div>
             </SheetContent>
           </Sheet>
