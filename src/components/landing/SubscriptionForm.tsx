@@ -1,12 +1,12 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query, orderBy, where, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,7 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters."),
@@ -29,6 +30,7 @@ const formSchema = z.object({
   injuriesOrNotes: z.string().optional(),
   preferredPlan: z.string().min(1, "Please select a plan."),
   subscriptionDuration: z.coerce.number().int().min(1, "Please select a duration."),
+  promoCode: z.string().optional(),
 }).refine(data => {
     if (data.primaryGoal === 'other') {
         return data.otherGoal && data.otherGoal.trim().length > 0;
@@ -43,6 +45,12 @@ interface Plan {
     id: string;
     name: string;
     price: number;
+}
+interface PromoCode {
+    id: string;
+    code: string;
+    discountPercentage: number;
+    status: 'active' | 'used';
 }
 
 const durationOptions = [
@@ -59,6 +67,8 @@ const SubscriptionForm = () => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [plans, setPlans] = React.useState<Plan[]>([]);
   const [totalPrice, setTotalPrice] = React.useState<number | null>(null);
+  const [promoCodeStatus, setPromoCodeStatus] = React.useState<'idle' | 'loading' | 'valid' | 'invalid'>('idle');
+  const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
 
   React.useEffect(() => {
     const fetchPlans = async () => {
@@ -77,18 +87,11 @@ const SubscriptionForm = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: "",
-      email: "",
-      phoneNumber: "",
-      age: undefined,
-      height: undefined,
-      weight: undefined,
-      experienceLevel: undefined,
-      primaryGoal: undefined,
-      preferredPlan: undefined,
+      fullName: "", email: "", phoneNumber: "",
+      age: undefined, height: undefined, weight: undefined,
+      experienceLevel: undefined, primaryGoal: undefined, preferredPlan: undefined,
       subscriptionDuration: 1,
-      injuriesOrNotes: "",
-      otherGoal: "",
+      injuriesOrNotes: "", otherGoal: "", promoCode: "",
     },
   });
 
@@ -101,14 +104,50 @@ const SubscriptionForm = () => {
       const plan = plans.find(p => p.name === selectedPlanName);
       const durationInfo = durationOptions.find(d => d.value === selectedDuration);
       if (plan && durationInfo) {
-        const basePrice = plan.price * durationInfo.value;
-        const finalPrice = basePrice * (1 - durationInfo.discount);
+        let finalPrice = plan.price * durationInfo.value * (1 - durationInfo.discount);
+        if (appliedPromo) {
+            finalPrice = finalPrice * (1 - appliedPromo.discountPercentage / 100);
+        }
         setTotalPrice(Math.round(finalPrice));
       }
     } else {
       setTotalPrice(null);
     }
-  }, [selectedPlanName, selectedDuration, plans]);
+  }, [selectedPlanName, selectedDuration, plans, appliedPromo]);
+
+  const handleApplyPromoCode = async () => {
+    const code = form.getValues('promoCode')?.trim().toUpperCase();
+    if (!code) return;
+    setPromoCodeStatus('loading');
+    setAppliedPromo(null);
+
+    try {
+        const q = query(collection(db, 'promoCodes'), where('code', '==', code));
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+            setPromoCodeStatus('invalid');
+            toast({ title: "Invalid Code", description: "This promo code does not exist.", variant: "destructive" });
+            return;
+        }
+
+        const promoDoc = querySnapshot.docs[0];
+        const promoData = { id: promoDoc.id, ...promoDoc.data() } as PromoCode;
+
+        if (promoData.status !== 'active') {
+            setPromoCodeStatus('invalid');
+            toast({ title: "Code Used", description: "This promo code has already been used.", variant: "destructive" });
+            return;
+        }
+        
+        setPromoCodeStatus('valid');
+        setAppliedPromo(promoData);
+        toast({ title: "Success!", description: `Applied ${promoData.discountPercentage}% discount.` });
+    } catch (error) {
+        setPromoCodeStatus('invalid');
+        toast({ title: "Error", description: "Could not validate promo code.", variant: "destructive" });
+    }
+  };
 
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -119,16 +158,31 @@ const SubscriptionForm = () => {
         delete dataToSubmit.otherGoal;
       }
 
-      await addDoc(collection(db, 'orders'), {
+      const orderRef = await addDoc(collection(db, 'orders'), {
         ...dataToSubmit,
+        promoCode: appliedPromo ? appliedPromo.code : null,
+        finalPrice: totalPrice,
         status: 'pending',
         createdAt: serverTimestamp(),
       });
+      
+      if (appliedPromo) {
+        const promoRef = doc(db, 'promoCodes', appliedPromo.id);
+        await updateDoc(promoRef, {
+            status: 'used',
+            usedByOrderId: orderRef.id,
+            usedAt: serverTimestamp(),
+        });
+      }
+
       toast({
         title: "Application Sent!",
         description: "Thank you! Akram will review your application and get back to you shortly.",
       });
       form.reset();
+      setAppliedPromo(null);
+      setPromoCodeStatus('idle');
+      setTotalPrice(null);
     } catch (error) {
       console.error("Error adding document: ", error);
       toast({
@@ -156,50 +210,25 @@ const SubscriptionForm = () => {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <FormField control={form.control} name="fullName" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="email" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl><Input placeholder="you@example.com" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="you@example.com" {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="phoneNumber" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number (with country code)</FormLabel>
-                      <FormControl><Input placeholder="+1 123 456 7890" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <FormItem><FormLabel>Phone Number (with country code)</FormLabel><FormControl><Input placeholder="+1 123 456 7890" {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                    <FormField control={form.control} name="age" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Age</FormLabel>
-                      <FormControl><Input type="number" placeholder="25" {...field} value={field.value ?? ''} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <FormItem><FormLabel>Age</FormLabel><FormControl><Input type="number" placeholder="25" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="height" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Height (cm)</FormLabel>
-                      <FormControl><Input type="number" placeholder="180" {...field} value={field.value ?? ''} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <FormItem><FormLabel>Height (cm)</FormLabel><FormControl><Input type="number" placeholder="180" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                   )} />
                    <FormField control={form.control} name="weight" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Weight (kg)</FormLabel>
-                      <FormControl><Input type="number" placeholder="85" {...field} value={field.value ?? ''} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <FormItem><FormLabel>Weight (kg)</FormLabel><FormControl><Input type="number" placeholder="85" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="experienceLevel" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Experience Level</FormLabel>
+                    <FormItem><FormLabel>Experience Level</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Select your experience" /></SelectTrigger></FormControl>
                         <SelectContent>
@@ -212,8 +241,7 @@ const SubscriptionForm = () => {
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="primaryGoal" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Primary Goal</FormLabel>
+                    <FormItem><FormLabel>Primary Goal</FormLabel>
                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Select your main goal" /></SelectTrigger></FormControl>
                         <SelectContent>
@@ -229,54 +257,56 @@ const SubscriptionForm = () => {
                 </div>
                 
                 {primaryGoal === 'other' && (
-                  <FormField
-                    control={form.control}
-                    name="otherGoal"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Please Specify Your Goal</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="e.g., improve athletic performance, prepare for a specific event..."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <FormField control={form.control} name="otherGoal" render={({ field }) => (
+                      <FormItem><FormLabel>Please Specify Your Goal</FormLabel><FormControl><Textarea placeholder="e.g., improve athletic performance..." {...field} /></FormControl><FormMessage /></FormItem>
+                  )}/>
                 )}
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
-                    <FormField control={form.control} name="preferredPlan" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Preferred Plan</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl><SelectTrigger><SelectValue placeholder="Select a coaching plan" /></SelectTrigger></FormControl>
-                          <SelectContent>
-                            {plans.map(plan => (
-                              <SelectItem key={plan.id} value={plan.name}>{plan.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={form.control} name="subscriptionDuration" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Subscription Duration</FormLabel>
-                            <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={String(field.value)}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select a duration" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {durationOptions.map(option => (
-                                        <SelectItem key={option.value} value={String(option.value)}>
-                                            {option.label}
-                                            {option.discount > 0 && <span className="text-muted-foreground ml-2">({option.discount * 100}% off)</span>}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
+                <div className="space-y-8 pt-8 border-t">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+                        <FormField control={form.control} name="preferredPlan" render={({ field }) => (
+                        <FormItem><FormLabel>Preferred Plan</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select a coaching plan" /></SelectTrigger></FormControl>
+                            <SelectContent>{plans.map(plan => (<SelectItem key={plan.id} value={plan.name}>{plan.name}</SelectItem>))}</SelectContent>
+                            </Select><FormMessage />
+                        </FormItem>
+                        )} />
+                        <FormField control={form.control} name="subscriptionDuration" render={({ field }) => (
+                            <FormItem><FormLabel>Subscription Duration</FormLabel>
+                                <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={String(field.value)}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a duration" /></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        {durationOptions.map(option => (
+                                            <SelectItem key={option.value} value={String(option.value)}>
+                                                {option.label} {option.discount > 0 && <span className="text-muted-foreground ml-2">({option.discount * 100}% off)</span>}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select><FormMessage />
+                            </FormItem>
+                        )}/>
+                    </div>
+                     <FormField control={form.control} name="promoCode" render={({ field }) => (
+                        <FormItem><FormLabel>Promo Code</FormLabel>
+                           <div className="flex items-center gap-2">
+                             <FormControl>
+                                <Input 
+                                    placeholder="Enter promo code" {...field} className="uppercase" 
+                                    onChange={(e) => {
+                                        field.onChange(e);
+                                        setPromoCodeStatus('idle');
+                                        setAppliedPromo(null);
+                                    }}
+                                />
+                             </FormControl>
+                             <Button type="button" variant="outline" onClick={handleApplyPromoCode} disabled={promoCodeStatus === 'loading'}>
+                                {promoCodeStatus === 'loading' ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Apply'}
+                             </Button>
+                             {promoCodeStatus === 'valid' && <CheckCircle2 className="h-5 w-5 text-green-500" />}
+                             {promoCodeStatus === 'invalid' && <XCircle className="h-5 w-5 text-red-500" />}
+                           </div>
+                           <FormMessage />
                         </FormItem>
                     )}/>
                 </div>
@@ -287,20 +317,14 @@ const SubscriptionForm = () => {
                             <span className="text-lg font-semibold text-foreground">Total Price:</span>
                             <div className="text-right">
                                 <span className="text-2xl font-bold text-primary">{totalPrice.toLocaleString()} DZD</span>
-                                {totalPriceUSD !== null && (
-                                  <p className="text-sm text-muted-foreground">(approx. ${totalPriceUSD.toLocaleString()} USD)</p>
-                                )}
+                                {totalPriceUSD !== null && ( <p className="text-sm text-muted-foreground">(approx. ${totalPriceUSD.toLocaleString()} USD)</p>)}
                             </div>
                         </div>
                     </div>
                 )}
                 
                 <FormField control={form.control} name="injuriesOrNotes" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Any Injuries or Important Notes?</FormLabel>
-                    <FormControl><Textarea placeholder="e.g., old shoulder injury, specific dietary restrictions..." {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Any Injuries or Important Notes?</FormLabel><FormControl><Textarea placeholder="e.g., old shoulder injury..." {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
 
                 <Button type="submit" className="w-full bg-accent hover:bg-accent/90" size="lg" disabled={isSubmitting}>
