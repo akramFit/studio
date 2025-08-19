@@ -32,6 +32,7 @@ interface Order {
   status: 'pending' | 'approved' | 'rejected';
   createdAt: any;
   promoCode?: string;
+  finalPrice?: number;
   [key: string]: any;
 }
 
@@ -136,7 +137,7 @@ const OrdersPage = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Plan</TableHead>
                 <TableHead>Duration</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead>Final Price</TableHead>
                 <TableHead>Promo</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -146,7 +147,7 @@ const OrdersPage = () => {
                 <TableRow key={order.id}>
                   <TableCell>
                     <div className="font-medium">{order.fullName}</div>
-                    <div className="text-sm text-muted-foreground">{order.email}</div>
+                    <div className="text-sm text-muted-foreground">{format(order.createdAt.toDate(), 'PPP')}</div>
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">{order.preferredPlan}</Badge>
@@ -154,8 +155,8 @@ const OrdersPage = () => {
                   <TableCell>
                     <Badge variant="outline">{getDurationText(order.subscriptionDuration)}</Badge>
                   </TableCell>
-                  <TableCell>
-                     {order.createdAt ? format(order.createdAt.toDate(), 'PPP') : 'N/A'}
+                  <TableCell className="font-medium">
+                    {order.finalPrice ? `${order.finalPrice.toLocaleString()} DZD` : 'N/A'}
                   </TableCell>
                    <TableCell>
                     {order.promoCode ? (
