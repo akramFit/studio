@@ -116,7 +116,8 @@ const ClientsPage = () => {
     if (!endDate) return { text: 'N/A', color: 'bg-gray-500' };
     const days = differenceInDays(endDate.toDate(), new Date());
     if (days < 0) return { text: 'Expired', color: 'bg-red-500' };
-    if (days <= 7) return { text: `${days} days left`, color: 'bg-yellow-500' };
+    if (days < 10) return { text: `${days} days left`, color: 'bg-red-500' };
+    if (days < 20) return { text: `${days} days left`, color: 'bg-yellow-500' };
     return { text: `${days} days left`, color: 'bg-green-500' };
   };
   

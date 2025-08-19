@@ -78,6 +78,12 @@ const MembershipPage = () => {
     }
   };
 
+  const getDaysLeftColor = (days: number) => {
+    if (days < 10) return "text-red-500";
+    if (days < 20) return "text-yellow-500";
+    return "text-green-500";
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-black">
         <Navbar />
@@ -123,7 +129,10 @@ const MembershipPage = () => {
                             <div className="flex items-center gap-3"><ShieldCheck className="h-4 w-4 text-muted-foreground" /> <span>Plan: {clientInfo.plan}</span></div>
                             <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Expires: {clientInfo.endDate ? format(clientInfo.endDate.toDate(), 'PPP') : 'N/A'}</span></div>
                              {clientInfo.isActive && (
-                                <div className="flex items-center gap-3 text-primary font-medium"><Clock className="h-4 w-4" /> <span>{clientInfo.daysLeft} days remaining</span></div>
+                                <div className={cn("flex items-center gap-3 font-medium", getDaysLeftColor(clientInfo.daysLeft))}>
+                                    <Clock className="h-4 w-4" /> 
+                                    <span>{clientInfo.daysLeft} days remaining</span>
+                                </div>
                              )}
                         </div>
                     </div>
