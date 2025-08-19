@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Eye, Trash2, MessageSquare, Loader2, RefreshCw, Copy, CalendarPlus, PauseCircle, PlayCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { format, differenceInDays, add } from 'date-fns';
+import { format, differenceInCalendarDays, add } from 'date-fns';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -120,7 +120,7 @@ const ClientsPage = () => {
     if (client.status === 'paused') return { text: 'Paused', color: 'bg-gray-500' };
     if (!client.endDate) return { text: 'N/A', color: 'bg-gray-500' };
     
-    const days = differenceInDays(client.endDate.toDate(), new Date());
+    const days = differenceInCalendarDays(client.endDate.toDate(), new Date());
 
     if (days < 0) return { text: 'Expired', color: 'bg-red-500' };
     if (days < 10) return { text: `${days} days left`, color: 'bg-red-500' };
@@ -137,7 +137,7 @@ const ClientsPage = () => {
     const clientRef = doc(db, 'clients', client.id);
     if (client.status === 'active') {
       // Pause the membership
-      const daysLeft = differenceInDays(client.endDate.toDate(), new Date());
+      const daysLeft = differenceInCalendarDays(client.endDate.toDate(), new Date());
       try {
         await updateDoc(clientRef, {
           status: 'paused',
@@ -332,3 +332,5 @@ const ClientsPage = () => {
 };
 
 export default ClientsPage;
+
+    
