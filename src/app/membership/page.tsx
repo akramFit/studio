@@ -12,12 +12,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, User, Calendar, ShieldCheck, Clock } from 'lucide-react';
+import { Loader2, User, Calendar, ShieldCheck, Clock, Target } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
   membershipCode: z.string().min(6, "Membership code is required."),
@@ -29,6 +30,10 @@ interface ClientInfo {
     endDate: any;
     isActive: boolean;
     daysLeft: number;
+    currentGoalTitle?: string;
+    targetMetric?: string;
+    targetValue?: string;
+    targetDate?: any;
 }
 
 const MembershipPage = () => {
@@ -64,6 +69,10 @@ const MembershipPage = () => {
             endDate: clientData.endDate,
             isActive,
             daysLeft,
+            currentGoalTitle: clientData.currentGoalTitle,
+            targetMetric: clientData.targetMetric,
+            targetValue: clientData.targetValue,
+            targetDate: clientData.targetDate,
         });
       }
     } catch (error) {
@@ -135,6 +144,25 @@ const MembershipPage = () => {
                                 </div>
                              )}
                         </div>
+                        
+                        {clientInfo.currentGoalTitle && (
+                            <>
+                                <Separator className="my-6" />
+                                <div className="space-y-3">
+                                    <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                                        <Target className="h-5 w-5" />
+                                        Current Goal
+                                    </h3>
+                                    <div className="p-4 rounded-md bg-muted/50 border space-y-2">
+                                        <p className="font-bold text-base text-foreground">{clientInfo.currentGoalTitle}</p>
+                                        <div className="flex justify-between items-center text-sm text-muted-foreground">
+                                            <span>{clientInfo.targetMetric}: <span className="font-medium text-foreground">{clientInfo.targetValue}</span></span>
+                                            {clientInfo.targetDate && <span>Target: <span className="font-medium text-foreground">{format(clientInfo.targetDate.toDate(), 'PPP')}</span></span>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
                 </CardContent>
