@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -39,23 +39,38 @@ const formSchema = z.object({
     path: ['otherGoal'],
 });
 
-const plans = [
-    { id: "1", name: "Personal Training" },
-    { id: "2", name: "Online Coaching" },
-    { id: "3", name: "Online VIP" },
-];
+interface Plan {
+    id: string;
+    name: string;
+    price: number;
+}
 
 const durationOptions = [
-    { value: 1, label: "1 Month" },
-    { value: 3, label: "3 Months" },
-    { value: 6, label: "6 Months" },
-    { value: 12, label: "1 Year" },
+    { value: 1, label: "1 Month", discount: 0 },
+    { value: 3, label: "3 Months", discount: 0.15 },
+    { value: 6, label: "6 Months", discount: 0.18 },
+    { value: 12, label: "1 Year", discount: 0.20 },
 ];
-
 
 const SubscriptionForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [plans, setPlans] = React.useState<Plan[]>([]);
+  const [totalPrice, setTotalPrice] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const q = query(collection(db, "pricing"), orderBy("durationDays"));
+        const querySnapshot = await getDocs(q);
+        const plansData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Plan));
+        setPlans(plansData);
+      } catch (error) {
+        console.error("Error fetching pricing plans: ", error);
+      }
+    };
+    fetchPlans();
+  }, []);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,6 +91,23 @@ const SubscriptionForm = () => {
   });
 
   const primaryGoal = form.watch('primaryGoal');
+  const selectedPlanName = form.watch('preferredPlan');
+  const selectedDuration = form.watch('subscriptionDuration');
+
+  React.useEffect(() => {
+    if (selectedPlanName && selectedDuration && plans.length > 0) {
+      const plan = plans.find(p => p.name === selectedPlanName);
+      const durationInfo = durationOptions.find(d => d.value === selectedDuration);
+      if (plan && durationInfo) {
+        const basePrice = plan.price * durationInfo.value;
+        const finalPrice = basePrice * (1 - durationInfo.discount);
+        setTotalPrice(Math.round(finalPrice));
+      }
+    } else {
+      setTotalPrice(null);
+    }
+  }, [selectedPlanName, selectedDuration, plans]);
+
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -211,7 +243,7 @@ const SubscriptionForm = () => {
                   />
                 )}
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
                     <FormField control={form.control} name="preferredPlan" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Preferred Plan</FormLabel>
@@ -233,7 +265,10 @@ const SubscriptionForm = () => {
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select a duration" /></SelectTrigger></FormControl>
                                 <SelectContent>
                                     {durationOptions.map(option => (
-                                        <SelectItem key={option.value} value={String(option.value)}>{option.label}</SelectItem>
+                                        <SelectItem key={option.value} value={String(option.value)}>
+                                            {option.label}
+                                            {option.discount > 0 && <span className="text-muted-foreground ml-2">({option.discount * 100}% off)</span>}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -241,6 +276,16 @@ const SubscriptionForm = () => {
                         </FormItem>
                     )}/>
                 </div>
+                
+                {totalPrice !== null && (
+                    <div className="pt-4 border-t-2 border-dashed border-border">
+                        <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
+                            <span className="text-lg font-semibold text-foreground">Total Price:</span>
+                            <span className="text-2xl font-bold text-primary">{totalPrice.toLocaleString()} DZD</span>
+                        </div>
+                    </div>
+                )}
+                
                 <FormField control={form.control} name="injuriesOrNotes" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Any Injuries or Important Notes?</FormLabel>
