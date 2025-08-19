@@ -13,10 +13,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Loader2, DollarSign, TrendingUp, TrendingDown, PlusCircle, RefreshCw } from 'lucide-react';
+import { Loader2, DollarSign, TrendingUp, TrendingDown, PlusCircle, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const expenseSchema = z.object({
   description: z.string().min(2, "Description is required."),
@@ -38,6 +39,7 @@ const FinancePage = () => {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAmountVisible, setIsAmountVisible] = useState(true);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof expenseSchema>>({
@@ -109,7 +111,17 @@ const FinancePage = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => `${amount.toLocaleString()} DZD`;
+  const formatCurrency = (amount: number) => isAmountVisible ? `${amount.toLocaleString()} DZD` : '•••••• DZD';
+
+  const SkeletonCard = () => (
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-4" />
+        </CardHeader>
+        <CardContent><Skeleton className="h-7 w-36" /></CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
@@ -119,6 +131,9 @@ const FinancePage = () => {
                 <p className="text-muted-foreground">Track your business's financial performance.</p>
             </div>
             <div className="flex gap-2">
+                 <Button onClick={() => setIsAmountVisible(!isAmountVisible)} variant="outline" size="icon">
+                    {isAmountVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <Button><PlusCircle className="mr-2 h-4 w-4"/> Add Expense</Button>
@@ -147,15 +162,25 @@ const FinancePage = () => {
         </div>
         
         <div className="grid gap-6 md:grid-cols-3">
-            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Income</CardTitle><TrendingUp className="h-4 w-4 text-green-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{loading ? "..." : formatCurrency(stats.totalIncome)}</div></CardContent></Card>
-            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Expenses</CardTitle><TrendingDown className="h-4 w-4 text-red-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{loading ? "..." : formatCurrency(stats.totalExpenses)}</div></CardContent></Card>
-            <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Net Profit</CardTitle><DollarSign className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{loading ? "..." : formatCurrency(stats.netProfit)}</div></CardContent></Card>
+            {loading ? (
+                <>
+                  <SkeletonCard />
+                  <SkeletonCard />
+                  <SkeletonCard />
+                </>
+            ) : (
+                <>
+                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Income</CardTitle><TrendingUp className="h-4 w-4 text-green-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{formatCurrency(stats.totalIncome)}</div></CardContent></Card>
+                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Expenses</CardTitle><TrendingDown className="h-4 w-4 text-red-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{formatCurrency(stats.totalExpenses)}</div></CardContent></Card>
+                  <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Net Profit</CardTitle><DollarSign className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{formatCurrency(stats.netProfit)}</div></CardContent></Card>
+                </>
+            )}
         </div>
 
         <Card>
             <CardHeader><CardTitle>Income vs. Expenses</CardTitle><CardDescription>Monthly financial performance.</CardDescription></CardHeader>
             <CardContent className="h-80 w-full">
-                {loading ? <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div> : 
+                {loading ? <Skeleton className="w-full h-full" /> : 
                  <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                         <defs>
@@ -163,9 +188,12 @@ const FinancePage = () => {
                             <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/><stop offset="95%" stopColor="#ef4444" stopOpacity={0}/></linearGradient>
                         </defs>
                         <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value/1000}k`} />
+                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => isAmountVisible ? `${value/1000}k` : '•••'} />
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                        <Tooltip
+                            contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                            formatter={(value: number) => isAmountVisible ? `${value.toLocaleString()} DZD` : '•••••• DZD'}
+                        />
                         <Area type="monotone" dataKey="income" stroke="#10b981" fillOpacity={1} fill="url(#colorIncome)" />
                         <Area type="monotone" dataKey="expenses" stroke="#ef4444" fillOpacity={1} fill="url(#colorExpenses)" />
                     </AreaChart>
@@ -187,7 +215,16 @@ const FinancePage = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {loading ? (<TableRow><TableCell colSpan={4} className="text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></TableCell></TableRow>) : 
+                        {loading ? (
+                          Array.from({ length: 5 }).map((_, i) => (
+                             <TableRow key={i}>
+                                <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                <TableCell className="text-right"><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
+                             </TableRow>
+                          ))
+                        ) : 
                          transactions.length > 0 ? transactions.map(tx => (
                             <TableRow key={tx.id}>
                                 <TableCell className="font-medium">{tx.description}</TableCell>
@@ -206,5 +243,3 @@ const FinancePage = () => {
 };
 
 export default FinancePage;
-
-    
