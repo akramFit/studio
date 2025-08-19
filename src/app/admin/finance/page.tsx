@@ -6,18 +6,29 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, Timestamp, deleteDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Loader2, DollarSign, TrendingUp, TrendingDown, PlusCircle, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { Loader2, DollarSign, TrendingUp, TrendingDown, PlusCircle, RefreshCw, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const expenseSchema = z.object({
   description: z.string().min(2, "Description is required."),
@@ -62,7 +73,7 @@ const FinancePage = () => {
       const expenseTxs = expensesSnapshot.docs.map(doc => ({ id: doc.id, type: 'expense' as const, ...doc.data() } as Transaction));
       
       const allTxs = [...incomeTxs, ...expenseTxs].sort((a, b) => b.date.toMillis() - a.date.toMillis());
-      setTransactions(allTxs.slice(0, 10)); // Show last 10 transactions
+      setTransactions(allTxs);
 
       const totalIncome = incomeTxs.reduce((sum, tx) => sum + tx.amount, 0);
       const totalExpenses = expenseTxs.reduce((sum, tx) => sum + tx.amount, 0);
@@ -108,6 +119,17 @@ const FinancePage = () => {
       toast({ title: "Error", description: "Failed to add expense.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+  
+  const handleDeleteTransaction = async (id: string, type: 'income' | 'expense') => {
+    const collectionName = type === 'income' ? 'transactions' : 'expenses';
+    try {
+        await deleteDoc(doc(db, collectionName, id));
+        toast({ title: 'Success', description: 'Transaction deleted.' });
+        fetchData();
+    } catch (error) {
+        toast({ title: 'Error', description: 'Failed to delete transaction.', variant: 'destructive' });
     }
   };
 
@@ -212,6 +234,7 @@ const FinancePage = () => {
                             <TableHead>Type</TableHead>
                             <TableHead>Date</TableHead>
                             <TableHead className="text-right">Amount</TableHead>
+                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -222,6 +245,7 @@ const FinancePage = () => {
                                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                 <TableCell className="text-right"><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
+                                <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                              </TableRow>
                           ))
                         ) : 
@@ -231,8 +255,29 @@ const FinancePage = () => {
                                 <TableCell><span className={`px-2 py-1 rounded-full text-xs ${tx.type === 'income' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>{tx.type}</span></TableCell>
                                 <TableCell>{format(tx.date.toDate(), 'PPP')}</TableCell>
                                 <TableCell className={`text-right font-semibold ${tx.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>{formatCurrency(tx.amount)}</TableCell>
+                                <TableCell className="text-right">
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button size="icon" variant="ghost">
+                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This will permanently delete the transaction: "{tx.description}". This action cannot be undone.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeleteTransaction(tx.id, tx.type)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </TableCell>
                             </TableRow>
-                         )) : (<TableRow><TableCell colSpan={4} className="text-center">No transactions found.</TableCell></TableRow>)
+                         )) : (<TableRow><TableCell colSpan={5} className="text-center">No transactions found.</TableCell></TableRow>)
                         }
                     </TableBody>
                 </Table>
