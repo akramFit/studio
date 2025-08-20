@@ -32,9 +32,12 @@ const GallerySection = () => {
       setLoading(true);
       try {
         const galleryCollection = collection(db, 'gallery');
-        const q = query(galleryCollection, where('visible', '==', true), orderBy('position'));
+        // Changed query to fetch all items and filter client-side to avoid index error
+        const q = query(galleryCollection, orderBy('position'));
         const querySnapshot = await getDocs(q);
-        const itemsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GalleryItem));
+        const itemsData = querySnapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() } as GalleryItem))
+          .filter(item => item.visible !== false); // Filter for visible items here
         setGalleryItems(itemsData);
       } catch (error) {
         console.error("Error fetching gallery data: ", error);
