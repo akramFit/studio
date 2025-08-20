@@ -21,12 +21,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const galleryItemSchema = z.object({
   imageURL: z.string().url("Please enter a valid URL."),
-  caption: z.string().min(2, "Caption is required."),
+  caption: z.string().optional(),
 });
 
 interface GalleryItem extends z.infer<typeof galleryItemSchema> {
   id: string;
   position: number;
+  caption: string;
 }
 
 const GalleryPage = () => {
