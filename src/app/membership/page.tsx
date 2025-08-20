@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,11 @@ const formSchema = z.object({
   membershipCode: z.string().min(6, "Membership code is required."),
 });
 
+interface ClientSchedule {
+    day: string;
+    time: string;
+}
+
 interface ClientInfo {
     fullName: string;
     plan: string;
@@ -34,6 +39,7 @@ interface ClientInfo {
     targetMetric?: string;
     targetValue?: string;
     targetDate?: any;
+    schedule?: ClientSchedule[];
 }
 
 const MembershipPage = () => {
@@ -58,9 +64,27 @@ const MembershipPage = () => {
       if (querySnapshot.empty) {
         toast({ title: 'Not Found', description: 'No membership found with that code.', variant: 'destructive' });
       } else {
-        const clientData = querySnapshot.docs[0].data();
+        const clientDoc = querySnapshot.docs[0];
+        const clientData = clientDoc.data();
+        const clientId = clientDoc.id;
         const endDate = clientData.endDate.toDate();
         const daysLeft = differenceInDays(endDate, new Date());
+
+        // Fetch weekly schedule
+        const scheduleDocRef = doc(db, 'app-data', 'weeklySchedule');
+        const scheduleDocSnap = await getDoc(scheduleDocRef);
+        let clientSchedule: ClientSchedule[] = [];
+
+        if (scheduleDocSnap.exists()) {
+            const scheduleData = scheduleDocSnap.data().schedule;
+            for (const day in scheduleData) {
+                for (const time in scheduleData[day]) {
+                    if (scheduleData[day][time] === clientId) {
+                        clientSchedule.push({ day, time });
+                    }
+                }
+            }
+        }
         
         setClientInfo({
             fullName: clientData.fullName,
@@ -72,6 +96,7 @@ const MembershipPage = () => {
             targetMetric: clientData.targetMetric,
             targetValue: clientData.targetValue,
             targetDate: clientData.targetDate,
+            schedule: clientSchedule,
         });
       }
     } catch (error) {
@@ -174,6 +199,26 @@ const MembershipPage = () => {
                                             <span>{clientInfo.targetMetric}: <span className="font-medium text-foreground">{clientInfo.targetValue}</span></span>
                                             {clientInfo.targetDate && <span>Target: <span className="font-medium text-foreground">{format(clientInfo.targetDate.toDate(), 'PPP')}</span></span>}
                                         </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                        
+                        {clientInfo.schedule && clientInfo.schedule.length > 0 && (
+                             <>
+                                <Separator className="my-6" />
+                                <div className="space-y-3">
+                                    <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                                        <Calendar className="h-5 w-5" />
+                                        Your Weekly Schedule
+                                    </h3>
+                                    <div className="p-4 rounded-md bg-muted/50 border space-y-2">
+                                      {clientInfo.schedule.map((session, index) => (
+                                        <div key={index} className="flex justify-between items-center text-sm text-muted-foreground">
+                                            <span className="font-medium text-foreground">{session.day}</span>
+                                            <span>{session.time}</span>
+                                        </div>
+                                      ))}
                                     </div>
                                 </div>
                             </>
