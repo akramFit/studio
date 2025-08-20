@@ -1,11 +1,14 @@
+
 "use client";
 
 import React, { useState } from 'react';
+import jsPDF from 'jspdf';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Bot, Loader2, FileDown, MessageSquare } from 'lucide-react';
+import { generateProgram } from '@/ai/flows/program-generator-flow';
 
 interface Client {
   id: string;
@@ -16,38 +19,8 @@ interface Client {
   [key: string]: any;
 }
 
-// This is a placeholder for a real AI flow call.
-// In a real application, you would import and call a flow from `src/ai/flows`.
-const generateProgramWithAI = async (prompt: string): Promise<string> => {
-  console.log("AI Prompt:", prompt);
-  return new Promise(resolve => setTimeout(() => resolve(`
-**Workout Program for ${prompt.split(' ')[2]}**
-
-**Phase 1: Foundation (Weeks 1-4)**
-*Focus: Hypertrophy and building a strong base.*
-
-**Day 1: Upper Body Strength**
-- Bench Press: 4 sets of 6-8 reps
-- Pull-Ups: 4 sets to failure
-- Overhead Press: 3 sets of 8-10 reps
-- Bent Over Rows: 3 sets of 8-10 reps
-- Bicep Curls: 3 sets of 10-12 reps
-- Tricep Pushdowns: 3 sets of 10-12 reps
-
-**Day 2: Lower Body Power**
-- Squats: 4 sets of 6-8 reps
-- Deadlifts: 3 sets of 5 reps
-- Leg Press: 3 sets of 10-12 reps
-- Hamstring Curls: 3 sets of 10-12 reps
-- Calf Raises: 4 sets of 15-20 reps
-
-*Rest days are crucial. Ensure 1-2 days of rest per week.*
-*This is a sample program. Please consult with your coach.*
-  `), 2000));
-};
-
 const ProgramGenerator = ({ client }: { client: Client }) => {
-  const [prompt, setPrompt] = useState(`Generate a new program for ${client.fullName}, focusing on their goal of ${client.primaryGoal.replace('_', ' ')}. Consider their notes: ${client.notes || 'None'}`);
+  const [prompt, setPrompt] = useState(`Generate a new 4-week workout program for ${client.fullName}, focusing on their goal of ${client.primaryGoal.replace('_', ' ')}. Consider their notes: ${client.notes || 'None'}. The program should be well-structured with clear instructions for exercises, sets, and reps for each day.`);
   const [generatedProgram, setGeneratedProgram] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -56,29 +29,44 @@ const ProgramGenerator = ({ client }: { client: Client }) => {
     setLoading(true);
     setGeneratedProgram('');
     try {
-      const result = await generateProgramWithAI(prompt);
-      setGeneratedProgram(result);
+      const result = await generateProgram({
+        clientName: client.fullName,
+        primaryGoal: client.primaryGoal,
+        notes: client.notes,
+        customPrompt: prompt,
+      });
+      setGeneratedProgram(result.program);
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to generate program.', variant: 'destructive' });
+      console.error(error);
+      toast({ title: 'Error', description: 'Failed to generate program. Please try again.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
 
   const handleDownloadPdf = () => {
-    // PDF generation logic would go here using a library like jsPDF.
-    // This is a placeholder as we cannot add new npm packages.
-    toast({
-        title: 'PDF Generation (Placeholder)',
-        description: 'In a real app, this would generate and download a PDF of the program.',
-    });
-    // Example jsPDF logic:
-    // const doc = new jsPDF();
-    // doc.text(generatedProgram, 10, 10);
-    // doc.save(`${client.fullName}_program.pdf`);
+    if (!generatedProgram) {
+        toast({ title: 'No Program', description: 'Please generate a program first.', variant: 'destructive' });
+        return;
+    }
+
+    const doc = new jsPDF();
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text(`Workout Program for ${client.fullName}`, 105, 20, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    
+    // Split text into lines to fit the page width
+    const splitText = doc.splitTextToSize(generatedProgram, 180);
+    doc.text(splitText, 15, 40);
+
+    doc.save(`${client.fullName}_program.pdf`);
   };
   
-  const whatsappMessage = `Hi ${client.fullName}, here is your new training program! Let me know if you have any questions.`;
+  const whatsappMessage = `Hi ${client.fullName}, here is your new training program! I've attached it as a PDF. Let me know if you have any questions.`;
   const whatsappUrl = `https://wa.me/${client.phoneNumber.replace(/\s+/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (

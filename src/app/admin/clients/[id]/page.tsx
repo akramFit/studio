@@ -127,7 +127,7 @@ const ClientDetailPage = () => {
                 <div className="md:col-span-2 space-y-6">
                     <GoalManager client={client} onGoalUpdate={handleGoalUpdate} />
                     <ProgressLog clientId={client.id} />
-                    {/* <ProgramGenerator client={client} /> */}
+                    <ProgramGenerator client={client} />
                 </div>
             </div>
         </div>
