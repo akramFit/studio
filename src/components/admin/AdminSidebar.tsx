@@ -15,6 +15,7 @@ import {
   Inbox,
   Tag,
   Banknote,
+  Calendar,
 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -25,6 +26,7 @@ const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/orders', label: 'Orders', icon: Inbox },
   { href: '/admin/clients', label: 'Clients', icon: Users },
+  { href: '/admin/schedule', label: 'Schedule', icon: Calendar },
   { href: '/admin/finance', label: 'Finance', icon: Banknote },
   { href: '/admin/gallery', label: 'Gallery', icon: GalleryHorizontal },
   { href: '/admin/achievements', label: 'Achievements', icon: Trophy },
@@ -56,17 +58,22 @@ const AdminSidebar = () => {
         </Link>
       </div>
       <nav className="flex-1 px-4 py-6 space-y-2">
-        {navItems.map((item) => (
-          <Link key={item.href} href={item.href}>
-            <Button
-              variant={pathname.startsWith(item.href) && (item.href !== '/admin' || pathname === '/admin') ? 'secondary' : 'ghost'}
-              className="w-full justify-start"
-            >
-              <item.icon className="mr-2 h-4 w-4" />
-              {item.label}
-            </Button>
-          </Link>
-        ))}
+        {navItems.map((item) => {
+           const isActive = pathname.startsWith(item.href) && (item.href !== '/admin' || pathname === '/admin');
+           return (
+            <Link key={item.href} href={item.href}>
+                <Button
+                variant={isActive ? 'secondary' : 'ghost'}
+                className={cn("w-full justify-start", {
+                    "bg-accent text-accent-foreground hover:bg-accent/90": isActive
+                })}
+                >
+                <item.icon className="mr-2 h-4 w-4" />
+                {item.label}
+                </Button>
+            </Link>
+           )
+        })}
       </nav>
       <div className="px-4 py-6 border-t">
         <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
@@ -79,5 +86,3 @@ const AdminSidebar = () => {
 };
 
 export default AdminSidebar;
-
-    
