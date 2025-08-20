@@ -105,7 +105,7 @@ const MembershipPage = () => {
   return (
     <div className="flex flex-col min-h-screen bg-black">
         <Navbar />
-        <main className="flex-1 flex items-center justify-center p-4">
+        <main className="flex-1 flex flex-col items-center justify-center p-4">
             <Card className="w-full max-w-md shadow-lg bg-card">
                 <CardHeader className="text-center">
                     <CardTitle className="font-headline text-2xl">Check Membership</CardTitle>
