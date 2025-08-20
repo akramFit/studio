@@ -25,6 +25,7 @@ const FaqSection = dynamic(() => import('@/components/landing/FaqSection'), {
 });
 const SubscriptionForm = dynamic(() => import('@/components/landing/SubscriptionForm'), {
   loading: () => <Skeleton className="h-[700px] w-full" />,
+  ssr: false,
 });
 
 
