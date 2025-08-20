@@ -1,3 +1,4 @@
+
 "use client";
 
 import dynamic from 'next/dynamic';
@@ -21,6 +22,7 @@ const GallerySection = dynamic(() => import('@/components/landing/GallerySection
 });
 const FaqSection = dynamic(() => import('@/components/landing/FaqSection'), {
   loading: () => <Skeleton className="h-[500px] w-full" />,
+  ssr: false,
 });
 const SubscriptionForm = dynamic(() => import('@/components/landing/SubscriptionForm'), {
   loading: () => <Skeleton className="h-[700px] w-full" />,
