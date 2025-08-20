@@ -70,7 +70,7 @@ const SchedulePage = () => {
       ...prev,
       [day]: {
         ...prev[day],
-        [time]: clientId,
+        [time]: clientId === 'unassigned' ? '' : clientId,
       },
     }));
   };
@@ -150,7 +150,7 @@ const SchedulePage = () => {
                         <SelectValue placeholder="Assign client" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">- Unassigned -</SelectItem>
+                        <SelectItem value="unassigned">- Unassigned -</SelectItem>
                         {clients.map(client => (
                           <SelectItem key={client.id} value={client.id}>
                             {client.fullName}
