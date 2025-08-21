@@ -10,7 +10,7 @@ const AboutSection = () => {
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
             <Image
-              src="https://raw.githubusercontent.com/akramFit/Akram-Fit-Training-Assets/main/4M3A7984.jpg"
+              src="https://github.com/akramFit/Akram-Fit-Training-Assets/blob/main/4M3A7984.jpg?raw=true"
               alt="Coach Akram"
               width={600}
               height={700}
