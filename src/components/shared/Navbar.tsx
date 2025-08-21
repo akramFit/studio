@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -64,6 +64,7 @@ const Navbar = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               <div className="flex flex-col gap-6 p-6 pt-12">
                 <SheetClose asChild>
                     <Link href="/" className="flex items-center gap-2 mb-4" aria-label="Akram Fit Training Home">
