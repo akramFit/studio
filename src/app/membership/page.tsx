@@ -130,103 +130,105 @@ const MembershipPage = () => {
   return (
     <div className="flex flex-col min-h-screen bg-black">
         <Navbar />
-        <main className="flex-1 flex flex-col items-center justify-center p-4">
-            <Card className="w-full max-w-md shadow-lg bg-card">
-                <CardHeader className="text-center">
-                    <CardTitle className="font-headline text-2xl">Check Membership</CardTitle>
-                    <CardDescription>Enter your code to view your plan details.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <FormField
-                        control={form.control}
-                        name="membershipCode"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Membership Code</FormLabel>
-                            <FormControl>
-                            <Input placeholder="ABC123DE" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Check Status
-                    </Button>
-                    </form>
-                </Form>
+        <main className="flex-1 flex items-center justify-center p-4">
+            <div className="w-full flex justify-center">
+                <Card className="w-full max-w-md shadow-lg bg-card">
+                    <CardHeader className="text-center">
+                        <CardTitle className="font-headline text-2xl">Check Membership</CardTitle>
+                        <CardDescription>Enter your code to view your plan details.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="membershipCode"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Membership Code</FormLabel>
+                                <FormControl>
+                                <Input placeholder="ABC123DE" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <Button type="submit" className="w-full" disabled={isLoading}>
+                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Check Status
+                        </Button>
+                        </form>
+                    </Form>
 
-                {clientInfo && (
-                    <div className="mt-8 pt-6 border-t border-border">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold text-primary">Membership Details</h3>
-                             <Badge className={cn(getStatusInfo(clientInfo).color, "text-white")}>
-                                {getStatusInfo(clientInfo).text}
-                            </Badge>
-                        </div>
-                        <div className="space-y-3 text-sm">
-                            <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>{clientInfo.fullName}</span></div>
-                            <div className="flex items-center gap-3"><ShieldCheck className="h-4 w-4 text-muted-foreground" /> <span>Plan: {clientInfo.plan}</span></div>
-                            <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Expires: {clientInfo.endDate ? format(clientInfo.endDate.toDate(), 'PPP') : 'N/A'}</span></div>
-                             {clientInfo.status === 'active' && clientInfo.daysLeft > 0 && (
-                                <div className={cn("flex items-center gap-3 font-medium", getDaysLeftColor(clientInfo.daysLeft))}>
-                                    <Clock className="h-4 w-4" /> 
-                                    <span>{clientInfo.daysLeft} days remaining</span>
-                                </div>
-                             )}
-                              {clientInfo.status === 'paused' && (
-                                <div className="flex items-center gap-3 font-medium text-gray-400">
-                                    <PauseCircle className="h-4 w-4" /> 
-                                    <span>Membership is currently paused.</span>
-                                </div>
-                             )}
-                        </div>
-                        
-                        {clientInfo.currentGoalTitle && (
-                            <>
-                                <Separator className="my-6" />
-                                <div className="space-y-3">
-                                    <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
-                                        <Target className="h-5 w-5" />
-                                        Current Goal
-                                    </h3>
-                                    <div className="p-4 rounded-md bg-muted/50 border space-y-2">
-                                        <p className="font-bold text-base text-foreground">{clientInfo.currentGoalTitle}</p>
-                                        <div className="flex justify-between items-center text-sm text-muted-foreground">
-                                            <span>{clientInfo.targetMetric}: <span className="font-medium text-foreground">{clientInfo.targetValue}</span></span>
-                                            {clientInfo.targetDate && <span>Target: <span className="font-medium text-foreground">{format(clientInfo.targetDate.toDate(), 'PPP')}</span></span>}
+                    {clientInfo && (
+                        <div className="mt-8 pt-6 border-t border-border">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold text-primary">Membership Details</h3>
+                                <Badge className={cn(getStatusInfo(clientInfo).color, "text-white")}>
+                                    {getStatusInfo(clientInfo).text}
+                                </Badge>
+                            </div>
+                            <div className="space-y-3 text-sm">
+                                <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>{clientInfo.fullName}</span></div>
+                                <div className="flex items-center gap-3"><ShieldCheck className="h-4 w-4 text-muted-foreground" /> <span>Plan: {clientInfo.plan}</span></div>
+                                <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Expires: {clientInfo.endDate ? format(clientInfo.endDate.toDate(), 'PPP') : 'N/A'}</span></div>
+                                {clientInfo.status === 'active' && clientInfo.daysLeft > 0 && (
+                                    <div className={cn("flex items-center gap-3 font-medium", getDaysLeftColor(clientInfo.daysLeft))}>
+                                        <Clock className="h-4 w-4" /> 
+                                        <span>{clientInfo.daysLeft} days remaining</span>
+                                    </div>
+                                )}
+                                {clientInfo.status === 'paused' && (
+                                    <div className="flex items-center gap-3 font-medium text-gray-400">
+                                        <PauseCircle className="h-4 w-4" /> 
+                                        <span>Membership is currently paused.</span>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {clientInfo.currentGoalTitle && (
+                                <>
+                                    <Separator className="my-6" />
+                                    <div className="space-y-3">
+                                        <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                                            <Target className="h-5 w-5" />
+                                            Current Goal
+                                        </h3>
+                                        <div className="p-4 rounded-md bg-muted/50 border space-y-2">
+                                            <p className="font-bold text-base text-foreground">{clientInfo.currentGoalTitle}</p>
+                                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm text-muted-foreground gap-2 sm:gap-0">
+                                                <span>{clientInfo.targetMetric}: <span className="font-medium text-foreground">{clientInfo.targetValue}</span></span>
+                                                {clientInfo.targetDate && <span>Target: <span className="font-medium text-foreground">{format(clientInfo.targetDate.toDate(), 'PPP')}</span></span>}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </>
-                        )}
-                        
-                        {clientInfo.schedule && clientInfo.schedule.length > 0 && (
-                             <>
-                                <Separator className="my-6" />
-                                <div className="space-y-3">
-                                    <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
-                                        <Calendar className="h-5 w-5" />
-                                        Your Weekly Schedule
-                                    </h3>
-                                    <div className="p-4 rounded-md bg-muted/50 border space-y-2">
-                                      {clientInfo.schedule.map((session, index) => (
-                                        <div key={index} className="flex justify-between items-center text-sm text-muted-foreground">
-                                            <span className="font-medium text-foreground">{session.day}</span>
-                                            <span>{session.time}</span>
+                                </>
+                            )}
+                            
+                            {clientInfo.schedule && clientInfo.schedule.length > 0 && (
+                                <>
+                                    <Separator className="my-6" />
+                                    <div className="space-y-3">
+                                        <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                                            <Calendar className="h-5 w-5" />
+                                            Your Weekly Schedule
+                                        </h3>
+                                        <div className="p-4 rounded-md bg-muted/50 border space-y-2">
+                                        {clientInfo.schedule.map((session, index) => (
+                                            <div key={index} className="flex justify-between items-center text-sm text-muted-foreground">
+                                                <span className="font-medium text-foreground">{session.day}</span>
+                                                <span>{session.time}</span>
+                                            </div>
+                                        ))}
                                         </div>
-                                      ))}
                                     </div>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                )}
-                </CardContent>
-            </Card>
+                                </>
+                            )}
+                        </div>
+                    )}
+                    </CardContent>
+                </Card>
+            </div>
         </main>
         <Footer />
     </div>
