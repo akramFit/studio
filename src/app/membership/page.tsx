@@ -17,28 +17,15 @@ import Footer from '@/components/shared/Footer';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { getClientByMembershipCode } from '@/ai/flows/get-client-by-membership-code-flow';
+import { getClientByMembershipCode } from '@/app/actions'; // Import the new Server Action
+import type { GetClientOutput } from '@/app/actions'; // Import the type
 
 const formSchema = z.object({
   membershipCode: z.string().min(6, "Membership code is required."),
 });
 
-interface ClientSchedule {
-    day: string;
-    time: string;
-}
-
-interface ClientInfo {
-    fullName?: string;
-    plan?: string;
-    endDate?: string;
-    status?: 'active' | 'paused';
+interface ClientInfo extends GetClientOutput {
     daysLeft: number;
-    currentGoalTitle?: string;
-    targetMetric?: string;
-    targetValue?: string;
-    targetDate?: string;
-    schedule?: ClientSchedule[];
 }
 
 const MembershipPage = () => {
@@ -131,7 +118,7 @@ const MembershipPage = () => {
                         </form>
                     </Form>
 
-                    {clientInfo && (
+                    {clientInfo && clientInfo.found && (
                         <div className="mt-8 pt-6 border-t border-border">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold text-primary">Membership Details</h3>
