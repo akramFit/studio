@@ -5,20 +5,19 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2, User, Calendar, ShieldCheck, Clock, Target, PauseCircle } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, parseISO } from 'date-fns';
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { getClientByMembershipCode } from '@/ai/flows/get-client-by-membership-code-flow';
 
 const formSchema = z.object({
   membershipCode: z.string().min(6, "Membership code is required."),
@@ -30,15 +29,15 @@ interface ClientSchedule {
 }
 
 interface ClientInfo {
-    fullName: string;
-    plan: string;
-    endDate: any;
-    status: 'active' | 'paused';
+    fullName?: string;
+    plan?: string;
+    endDate?: string;
+    status?: 'active' | 'paused';
     daysLeft: number;
     currentGoalTitle?: string;
     targetMetric?: string;
     targetValue?: string;
-    targetDate?: any;
+    targetDate?: string;
     schedule?: ClientSchedule[];
 }
 
@@ -58,45 +57,17 @@ const MembershipPage = () => {
     setIsLoading(true);
     setClientInfo(null);
     try {
-      const q = query(collection(db, 'clients'), where('membershipCode', '==', values.membershipCode.toUpperCase()));
-      const querySnapshot = await getDocs(q);
+      const result = await getClientByMembershipCode({ membershipCode: values.membershipCode });
 
-      if (querySnapshot.empty) {
+      if (!result || !result.found) {
         toast({ title: 'Not Found', description: 'No membership found with that code.', variant: 'destructive' });
       } else {
-        const clientDoc = querySnapshot.docs[0];
-        const clientData = clientDoc.data();
-        const clientId = clientDoc.id;
-        const endDate = clientData.endDate.toDate();
+        const endDate = result.endDate ? parseISO(result.endDate) : new Date();
         const daysLeft = differenceInDays(endDate, new Date());
 
-        // Fetch weekly schedule
-        const scheduleDocRef = doc(db, 'app-data', 'weeklySchedule');
-        const scheduleDocSnap = await getDoc(scheduleDocRef);
-        let clientSchedule: ClientSchedule[] = [];
-
-        if (scheduleDocSnap.exists()) {
-            const scheduleData = scheduleDocSnap.data().schedule;
-            for (const day in scheduleData) {
-                for (const time in scheduleData[day]) {
-                    if (scheduleData[day][time] === clientId) {
-                        clientSchedule.push({ day, time });
-                    }
-                }
-            }
-        }
-        
         setClientInfo({
-            fullName: clientData.fullName,
-            plan: clientData.plan,
-            endDate: clientData.endDate,
-            status: clientData.status || 'active',
+            ...result,
             daysLeft: daysLeft < 0 ? 0 : daysLeft,
-            currentGoalTitle: clientData.currentGoalTitle,
-            targetMetric: clientData.targetMetric,
-            targetValue: clientData.targetValue,
-            targetDate: clientData.targetDate,
-            schedule: clientSchedule,
         });
       }
     } catch (error) {
@@ -131,8 +102,8 @@ const MembershipPage = () => {
     <div className="flex flex-col min-h-screen bg-black">
         <Navbar />
         <main className="flex-1 flex items-center justify-center p-4">
-            <div className="w-full flex justify-center">
-                <Card className="w-full max-w-md shadow-lg bg-card">
+            <div className="w-full max-w-lg mx-auto">
+                <Card className="w-full shadow-lg bg-card">
                     <CardHeader className="text-center">
                         <CardTitle className="font-headline text-2xl">Check Membership</CardTitle>
                         <CardDescription>Enter your code to view your plan details.</CardDescription>
@@ -171,7 +142,7 @@ const MembershipPage = () => {
                             <div className="space-y-3 text-sm">
                                 <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>{clientInfo.fullName}</span></div>
                                 <div className="flex items-center gap-3"><ShieldCheck className="h-4 w-4 text-muted-foreground" /> <span>Plan: {clientInfo.plan}</span></div>
-                                <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Expires: {clientInfo.endDate ? format(clientInfo.endDate.toDate(), 'PPP') : 'N/A'}</span></div>
+                                <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Expires: {clientInfo.endDate ? format(parseISO(clientInfo.endDate), 'PPP') : 'N/A'}</span></div>
                                 {clientInfo.status === 'active' && clientInfo.daysLeft > 0 && (
                                     <div className={cn("flex items-center gap-3 font-medium", getDaysLeftColor(clientInfo.daysLeft))}>
                                         <Clock className="h-4 w-4" /> 
@@ -198,7 +169,7 @@ const MembershipPage = () => {
                                             <p className="font-bold text-base text-foreground">{clientInfo.currentGoalTitle}</p>
                                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm text-muted-foreground gap-2 sm:gap-0">
                                                 <span>{clientInfo.targetMetric}: <span className="font-medium text-foreground">{clientInfo.targetValue}</span></span>
-                                                {clientInfo.targetDate && <span>Target: <span className="font-medium text-foreground">{format(clientInfo.targetDate.toDate(), 'PPP')}</span></span>}
+                                                {clientInfo.targetDate && <span>Target: <span className="font-medium text-foreground">{format(parseISO(clientInfo.targetDate), 'PPP')}</span></span>}
                                             </div>
                                         </div>
                                     </div>
