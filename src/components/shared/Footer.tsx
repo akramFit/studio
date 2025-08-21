@@ -15,7 +15,7 @@ const Footer = () => {
             <Link href="#" aria-label="Twitter">
               <Twitter className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
             </Link>
-            <Link href="#" aria-label="Instagram">
+            <Link href="https://www.instagram.com/akram_fit_ifbb?igsh=NHJkOGR1eWx3ODlt" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
               <Instagram className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
             </Link>
             <Link href="#" aria-label="Facebook">
