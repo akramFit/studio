@@ -12,6 +12,8 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, getDoc, Timestamp } from 'firebase/firestore';
+import { run } from 'genkit';
+import { forceDevAuthPolicy, onFlow } from '@genkit-ai/next/plugin';
 
 const GetClientInputSchema = z.object({
   membershipCode: z.string().describe('The unique membership code for the client.'),
@@ -42,61 +44,65 @@ export async function getClientByMembershipCode(input: GetClientInput): Promise<
   return getClientByMembershipCodeFlow(input);
 }
 
-const getClientByMembershipCodeFlow = ai.defineFlow(
+const getClientByMembershipCodeFlow = onFlow(
   {
     name: 'getClientByMembershipCodeFlow',
     inputSchema: GetClientInputSchema,
     outputSchema: GetClientOutputSchema,
+    authPolicy: forceDevAuthPolicy, // Allow public access to this flow
   },
   async ({ membershipCode }) => {
-    if (!membershipCode) {
-        return { found: false };
-    }
-
-    // 1. Find the client by membership code
-    const clientQuery = query(collection(db, 'clients'), where('membershipCode', '==', membershipCode.toUpperCase()));
-    const clientSnapshot = await getDocs(clientQuery);
-
-    if (clientSnapshot.empty) {
-      return { found: false };
-    }
-
-    const clientDoc = clientSnapshot.docs[0];
-    const clientData = clientDoc.data();
-    const clientId = clientDoc.id;
-
-    // 2. Fetch the weekly schedule to find this client's sessions
-    const scheduleDocRef = doc(db, 'app-data', 'weeklySchedule');
-    const scheduleDocSnap = await getDoc(scheduleDocRef);
-    let clientSchedule: z.infer<typeof ClientScheduleSchema>[] = [];
-
-    if (scheduleDocSnap.exists()) {
-      const scheduleData = scheduleDocSnap.data().schedule;
-      for (const day in scheduleData) {
-        for (const time in scheduleData[day]) {
-          if (scheduleData[day][time] === clientId) {
-            clientSchedule.push({ day, time });
-          }
+     // Use run() to execute this logic with elevated (admin) privileges on the server
+     return await run('fetch-client-data', async () => {
+        if (!membershipCode) {
+            return { found: false };
         }
-      }
-    }
-    
-    // Convert Timestamps to ISO strings for serialization
-    const endDate = clientData.endDate instanceof Timestamp ? clientData.endDate.toDate().toISOString() : undefined;
-    const targetDate = clientData.targetDate instanceof Timestamp ? clientData.targetDate.toDate().toISOString() : undefined;
+
+        // 1. Find the client by membership code
+        const clientQuery = query(collection(db, 'clients'), where('membershipCode', '==', membershipCode.toUpperCase()));
+        const clientSnapshot = await getDocs(clientQuery);
+
+        if (clientSnapshot.empty) {
+        return { found: false };
+        }
+
+        const clientDoc = clientSnapshot.docs[0];
+        const clientData = clientDoc.data();
+        const clientId = clientDoc.id;
+
+        // 2. Fetch the weekly schedule to find this client's sessions
+        const scheduleDocRef = doc(db, 'app-data', 'weeklySchedule');
+        const scheduleDocSnap = await getDoc(scheduleDocRef);
+        let clientSchedule: z.infer<typeof ClientScheduleSchema>[] = [];
+
+        if (scheduleDocSnap.exists()) {
+        const scheduleData = scheduleDocSnap.data().schedule;
+        for (const day in scheduleData) {
+            for (const time in scheduleData[day]) {
+            if (scheduleData[day][time] === clientId) {
+                clientSchedule.push({ day, time });
+            }
+            }
+        }
+        }
+        
+        // Convert Timestamps to ISO strings for serialization
+        const endDate = clientData.endDate instanceof Timestamp ? clientData.endDate.toDate().toISOString() : undefined;
+        const targetDate = clientData.targetDate instanceof Timestamp ? clientData.targetDate.toDate().toISOString() : undefined;
 
 
-    return {
-      found: true,
-      fullName: clientData.fullName,
-      plan: clientData.plan,
-      endDate: endDate,
-      status: clientData.status || 'active',
-      currentGoalTitle: clientData.currentGoalTitle,
-      targetMetric: clientData.targetMetric,
-      targetValue: clientData.targetValue,
-      targetDate: targetDate,
-      schedule: clientSchedule,
-    };
+        return {
+        found: true,
+        fullName: clientData.fullName,
+        plan: clientData.plan,
+        endDate: endDate,
+        status: clientData.status || 'active',
+        currentGoalTitle: clientData.currentGoalTitle,
+        targetMetric: clientData.targetMetric,
+        targetValue: clientData.targetValue,
+        targetDate: targetDate,
+        schedule: clientSchedule,
+        };
+    });
   }
 );
