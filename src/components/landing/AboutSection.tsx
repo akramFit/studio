@@ -14,7 +14,8 @@ const AboutSection = () => {
               alt="Coach Akram"
               width={600}
               height={700}
-              className="rounded-lg object-cover shadow-xl relative"
+              className="rounded-lg object-cover shadow-xl relative w-full"
+              style={{ height: 'auto' }}
               priority
             />
           </div>
