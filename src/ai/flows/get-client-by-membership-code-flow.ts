@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, getDoc, Timestamp } from 'firebase/firestore';
 import { run } from 'genkit';
-import { forceDevAuthPolicy, onFlow } from '@genkit-ai/next/plugin';
+import { defineFlow, forceDevAuthPolicy } from '@genkit-ai/next';
 
 const GetClientInputSchema = z.object({
   membershipCode: z.string().describe('The unique membership code for the client.'),
@@ -44,7 +44,7 @@ export async function getClientByMembershipCode(input: GetClientInput): Promise<
   return getClientByMembershipCodeFlow(input);
 }
 
-const getClientByMembershipCodeFlow = onFlow(
+const getClientByMembershipCodeFlow = defineFlow(
   {
     name: 'getClientByMembershipCodeFlow',
     inputSchema: GetClientInputSchema,
