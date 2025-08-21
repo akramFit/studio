@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, User, Phone, Calendar, Dumbbell, ShieldAlert, Target } from 'lucide-react';
-import ProgramGenerator from '@/components/admin/ProgramGenerator';
 import { format } from 'date-fns';
 import GoalManager from '@/components/admin/GoalManager';
 import ProgressLog from '@/components/admin/ProgressLog';
@@ -127,7 +126,6 @@ const ClientDetailPage = () => {
                 <div className="md:col-span-2 space-y-6">
                     <GoalManager client={client} onGoalUpdate={handleGoalUpdate} />
                     <ProgressLog clientId={client.id} />
-                    <ProgramGenerator client={client} />
                 </div>
             </div>
         </div>
