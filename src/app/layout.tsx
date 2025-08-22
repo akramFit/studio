@@ -6,11 +6,8 @@ export const metadata: Metadata = {
   title: 'Akram Fit Training',
   description: 'Personalized bodybuilding coaching by Akram.',
   icons: {
-    icon: [
-      { url: '/favicon.ico?v=2', type: 'image/x-icon' },
-    ],
-  }
-
+    icon: 'https://github.com/akramFit/Akram-Fit-Training-Assets/blob/main/favicon.png?raw=true',
+  },
 };
 
 export default function RootLayout({
