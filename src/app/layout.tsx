@@ -5,6 +5,11 @@ import { Toaster } from '@/components/ui/toaster';
 export const metadata: Metadata = {
   title: 'Akram Fit Training',
   description: 'Personalized bodybuilding coaching by Akram.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico?v=2', type: 'image/x-icon' },
+    ],
+  }
 
 };
 
