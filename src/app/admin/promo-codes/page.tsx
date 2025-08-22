@@ -6,12 +6,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, deleteDoc, addDoc, serverTimestamp, query, orderBy, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, setDoc, serverTimestamp, query, orderBy, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Trash2, PlusCircle, Loader2, RefreshCw, Tag, Copy, Check } from 'lucide-react';
+import { Trash2, PlusCircle, Loader2, RefreshCw, Tag, Copy } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Badge } from '@/components/ui/badge';
@@ -81,8 +81,9 @@ const PromoCodesPage = () => {
 
   const onSubmit = async (values: z.infer<typeof promoCodeSchema>) => {
     setIsSubmitting(true);
+    const upperCaseCode = values.code.toUpperCase();
     try {
-        const codeRef = doc(db, 'promoCodes', values.code.toUpperCase());
+        const codeRef = doc(db, 'promoCodes', upperCaseCode);
         const docSnap = await getDoc(codeRef);
         if (docSnap.exists()) {
             form.setError('code', { type: 'manual', message: 'This code already exists.' });
@@ -90,8 +91,8 @@ const PromoCodesPage = () => {
             return;
         }
 
-      await addDoc(collection(db, 'promoCodes'), {
-        code: values.code.toUpperCase(),
+      await setDoc(codeRef, {
+        code: upperCaseCode,
         discountPercentage: values.discountPercentage,
         status: 'active',
         createdAt: serverTimestamp(),
@@ -176,7 +177,7 @@ const PromoCodesPage = () => {
                         <FormItem>
                             <FormLabel>Promo Code</FormLabel>
                             <div className="flex gap-2">
-                                <FormControl><Input placeholder="e.g., SUMMERFIT20" {...field} className="uppercase" /></FormControl>
+                                <FormControl><Input placeholder="e.g., SUMMERFIT20" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl>
                                 <Button type="button" variant="outline" onClick={generateRandomCode}>Generate</Button>
                             </div>
                             <FormMessage />
@@ -241,7 +242,7 @@ const PromoCodesPage = () => {
                                 </TableCell>
                                 <TableCell>{code.discountPercentage}%</TableCell>
                                 <TableCell>
-                                    <Badge variant={code.status === 'active' ? 'default' : 'secondary'} className={code.status === 'active' ? 'bg-green-500/80' : ''}>
+                                    <Badge variant={code.status === 'active' ? 'default' : 'secondary'} className={cn(code.status === 'active' ? 'bg-green-500/80' : 'bg-gray-500/80', 'text-white')}>
                                         {code.status}
                                     </Badge>
                                 </TableCell>

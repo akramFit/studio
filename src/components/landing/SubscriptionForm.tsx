@@ -122,17 +122,16 @@ const SubscriptionForm = () => {
     setAppliedPromo(null);
 
     try {
-        const q = query(collection(db, 'promoCodes'), where('code', '==', code));
-        const querySnapshot = await getDocs(q);
+        const promoRef = doc(db, 'promoCodes', code);
+        const docSnap = await getDoc(promoRef);
         
-        if (querySnapshot.empty) {
+        if (!docSnap.exists()) {
             setPromoCodeStatus('invalid');
             toast({ title: "Invalid Code", description: "This promo code does not exist.", variant: "destructive" });
             return;
         }
 
-        const promoDoc = querySnapshot.docs[0];
-        const promoData = { id: promoDoc.id, ...promoDoc.data() } as PromoCode;
+        const promoData = { id: docSnap.id, ...docSnap.data() } as PromoCode;
 
         if (promoData.status !== 'active') {
             setPromoCodeStatus('invalid');
