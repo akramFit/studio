@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 const promoCodeSchema = z.object({
   code: z.string().min(4, "Code must be at least 4 characters.").max(20, "Code is too long."),
