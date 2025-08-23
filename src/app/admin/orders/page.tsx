@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Trash2, Loader2, RefreshCw, Tag } from 'lucide-react';
+import { Check, X, Trash2, Loader2, RefreshCw } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,7 +32,6 @@ interface Order {
   subscriptionDuration: number;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: any;
-  promoCode?: string;
   finalPrice?: number;
   [key: string]: any;
 }
@@ -139,7 +138,6 @@ const OrdersPage = () => {
           <TableHead>Plan</TableHead>
           <TableHead>Duration</TableHead>
           <TableHead>Final Price</TableHead>
-          <TableHead>Promo</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -150,7 +148,6 @@ const OrdersPage = () => {
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
             <TableCell><Skeleton className="h-5 w-20" /></TableCell>
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-            <TableCell><Skeleton className="h-5 w-20" /></TableCell>
             <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto" /></TableCell>
           </TableRow>
         ))}
@@ -182,7 +179,6 @@ const OrdersPage = () => {
                 <TableHead>Plan</TableHead>
                 <TableHead>Duration</TableHead>
                 <TableHead>Final Price</TableHead>
-                <TableHead>Promo</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -201,16 +197,6 @@ const OrdersPage = () => {
                   </TableCell>
                   <TableCell className="font-medium">
                     {order.finalPrice ? `${order.finalPrice.toLocaleString()} DZD` : 'N/A'}
-                  </TableCell>
-                   <TableCell>
-                    {order.promoCode ? (
-                       <Badge variant="outline" className="flex items-center gap-1.5 w-fit">
-                           <Tag className="h-3 w-3"/>
-                           {order.promoCode}
-                       </Badge>
-                    ) : (
-                        <span className="text-muted-foreground text-xs">None</span>
-                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-2 justify-end">
@@ -241,7 +227,7 @@ const OrdersPage = () => {
                 </TableRow>
               )) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">No pending orders found.</TableCell>
+                  <TableCell colSpan={5} className="text-center">No pending orders found.</TableCell>
                 </TableRow>
               )}
             </TableBody>

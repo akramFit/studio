@@ -14,9 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
-import { createSubscriptionOrder, validatePromoCode } from '@/app/actions';
-import type { PromoCode } from '@/app/actions';
+import { Loader2 } from 'lucide-react';
+import { createSubscriptionOrder } from '@/app/actions';
 
 
 const formSchema = z.object({
@@ -32,7 +31,6 @@ const formSchema = z.object({
   injuriesOrNotes: z.string().optional(),
   preferredPlan: z.string().min(1, "Please select a plan."),
   subscriptionDuration: z.coerce.number().int().min(1, "Please select a duration."),
-  promoCode: z.string().optional(),
 }).refine(data => {
     if (data.primaryGoal === 'other') {
         return data.otherGoal && data.otherGoal.trim().length > 0;
@@ -62,8 +60,6 @@ const SubscriptionForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [plans, setPlans] = React.useState<Plan[]>([]);
-  const [promoCodeStatus, setPromoCodeStatus] = React.useState<'idle' | 'loading' | 'valid' | 'invalid'>('idle');
-  const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
 
   React.useEffect(() => {
     const fetchPlans = async () => {
@@ -86,7 +82,7 @@ const SubscriptionForm = () => {
       age: undefined, height: undefined, weight: undefined,
       experienceLevel: undefined, primaryGoal: undefined, preferredPlan: undefined,
       subscriptionDuration: 1,
-      injuriesOrNotes: "", otherGoal: "", promoCode: "",
+      injuriesOrNotes: "", otherGoal: "",
     },
   });
 
@@ -100,32 +96,11 @@ const SubscriptionForm = () => {
       const durationInfo = durationOptions.find(d => d.value === selectedDuration);
       if (plan && durationInfo) {
         let finalPrice = plan.price * durationInfo.value * (1 - durationInfo.discount);
-        if (appliedPromo) {
-            finalPrice = finalPrice * (1 - appliedPromo.discountPercentage / 100);
-        }
         return Math.round(finalPrice);
       }
     }
     return null;
-  }, [selectedPlanName, selectedDuration, plans, appliedPromo]);
-
-  const handleApplyPromoCode = async () => {
-    const code = form.getValues('promoCode')?.trim().toUpperCase();
-    if (!code) return;
-    setPromoCodeStatus('loading');
-    setAppliedPromo(null);
-
-    const result = await validatePromoCode(code);
-
-    if (result.success && result.promoCode) {
-        setPromoCodeStatus('valid');
-        setAppliedPromo(result.promoCode);
-        toast({ title: "Success!", description: result.message });
-    } else {
-        setPromoCodeStatus('invalid');
-        toast({ title: "Invalid Code", description: result.message, variant: "destructive" });
-    }
-  };
+  }, [selectedPlanName, selectedDuration, plans]);
 
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -134,7 +109,6 @@ const SubscriptionForm = () => {
         const dataToSubmit = { 
             ...values,
             finalPrice: totalPrice,
-            promoCode: appliedPromo ? appliedPromo.code : undefined,
          };
         if (dataToSubmit.primaryGoal !== 'other') {
             delete dataToSubmit.otherGoal;
@@ -148,8 +122,6 @@ const SubscriptionForm = () => {
             description: "Thank you! Akram will review your application and get back to you shortly.",
           });
           form.reset();
-          setAppliedPromo(null);
-          setPromoCodeStatus('idle');
       } else {
           toast({
             title: "Submission Failed",
@@ -261,28 +233,6 @@ const SubscriptionForm = () => {
                             </FormItem>
                         )}/>
                     </div>
-                     <FormField control={form.control} name="promoCode" render={({ field }) => (
-                        <FormItem><FormLabel>Promo Code</FormLabel>
-                           <div className="flex items-center gap-2">
-                             <FormControl>
-                                <Input 
-                                    placeholder="Enter promo code" {...field} className="uppercase" 
-                                    onChange={(e) => {
-                                        field.onChange(e);
-                                        setPromoCodeStatus('idle');
-                                        setAppliedPromo(null);
-                                    }}
-                                />
-                             </FormControl>
-                             <Button type="button" variant="outline" onClick={handleApplyPromoCode} disabled={promoCodeStatus === 'loading'}>
-                                {promoCodeStatus === 'loading' ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Apply'}
-                             </Button>
-                             {promoCodeStatus === 'valid' && <CheckCircle2 className="h-5 w-5 text-green-500" />}
-                             {promoCodeStatus === 'invalid' && <XCircle className="h-5 w-5 text-red-500" />}
-                           </div>
-                           <FormMessage />
-                        </FormItem>
-                    )}/>
                 </div>
                 
                 {totalPrice !== null && (

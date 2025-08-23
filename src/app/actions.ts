@@ -84,59 +84,6 @@ export async function getClientByMembershipCode(input: GetClientInput): Promise<
 }
 
 
-// --- New Server Actions for Subscription Form ---
-
-const PromoCodeSchema = z.object({
-    id: z.string(),
-    code: z.string(),
-    discountPercentage: z.number(),
-    status: z.enum(['active', 'used']),
-});
-export type PromoCode = z.infer<typeof PromoCodeSchema>;
-
-const ValidatePromoCodeOutputSchema = z.object({
-    success: z.boolean(),
-    promoCode: PromoCodeSchema.optional(),
-    message: z.string(),
-});
-
-
-export async function validatePromoCode(code: string): Promise<z.infer<typeof ValidatePromoCodeOutputSchema>> {
-    if (!code) {
-        return { success: false, message: 'Promo code cannot be empty.' };
-    }
-
-    try {
-        const promoRef = doc(db, 'promoCodes', code.toUpperCase());
-        const docSnap = await getDoc(promoRef);
-
-        if (!docSnap.exists()) {
-            return { success: false, message: 'This promo code does not exist.' };
-        }
-
-        const promoData = docSnap.data();
-
-        if (promoData.status !== 'active') {
-            return { success: false, message: 'This promo code has already been used.' };
-        }
-        
-        // Return a plain object with only the necessary, serializable fields
-        const safePromoCode = {
-            id: docSnap.id,
-            code: promoData.code,
-            discountPercentage: promoData.discountPercentage,
-            status: promoData.status,
-        };
-
-        return { success: true, promoCode: safePromoCode, message: `Applied ${safePromoCode.discountPercentage}% discount.` };
-
-    } catch (error) {
-        console.error("Error validating promo code:", error);
-        return { success: false, message: 'Could not validate promo code.' };
-    }
-}
-
-
 const SubscriptionFormSchema = z.object({
   fullName: z.string(),
   email: z.string().email(),
@@ -150,7 +97,6 @@ const SubscriptionFormSchema = z.object({
   injuriesOrNotes: z.string().optional(),
   preferredPlan: z.string(),
   subscriptionDuration: z.number(),
-  promoCode: z.string().optional(),
   finalPrice: z.number().nullable(),
 });
 
@@ -158,31 +104,8 @@ export async function createSubscriptionOrder(formData: z.infer<typeof Subscript
     try {
         const validatedData = SubscriptionFormSchema.parse(formData);
 
+        const orderRef = doc(collection(db, 'orders'));
         await runTransaction(db, async (transaction) => {
-            const orderRef = doc(collection(db, 'orders'));
-
-            // If a promo code is used, validate it and update its status within the transaction
-            if (validatedData.promoCode && validatedData.promoCode.trim() !== '') {
-                const promoRef = doc(db, 'promoCodes', validatedData.promoCode.toUpperCase());
-                const promoDoc = await transaction.get(promoRef);
-
-                if (!promoDoc.exists()) {
-                    throw new Error("Promo code does not exist.");
-                }
-
-                if (promoDoc.data().status !== 'active') {
-                    throw new Error("Promo code has already been used.");
-                }
-
-                // Update the promo code status to 'used'
-                transaction.update(promoRef, {
-                    status: 'used',
-                    usedByOrderId: orderRef.id,
-                    usedAt: serverTimestamp(),
-                });
-            }
-
-            // Create the order
             transaction.set(orderRef, {
                 ...validatedData,
                 status: 'pending',
@@ -196,10 +119,6 @@ export async function createSubscriptionOrder(formData: z.infer<typeof Subscript
         console.error("Error creating subscription order:", error);
         if (error instanceof z.ZodError) {
             return { success: false, message: "Invalid form data provided." };
-        }
-        // Check for our custom promo code error messages
-        if (error.message.includes("Promo code")) {
-            return { success: false, message: error.message };
         }
         return { success: false, message: "Something went wrong. Please try again." };
     }

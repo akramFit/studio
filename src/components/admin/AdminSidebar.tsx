@@ -13,7 +13,6 @@ import {
   DollarSign,
   LogOut,
   Inbox,
-  Tag,
   Banknote,
   Calendar,
 } from 'lucide-react';
@@ -31,7 +30,6 @@ const navItems = [
   { href: '/admin/gallery', label: 'Gallery', icon: GalleryHorizontal },
   { href: '/admin/achievements', label: 'Achievements', icon: Trophy },
   { href: '/admin/pricing', label: 'Pricing', icon: DollarSign },
-  { href: '/admin/promo-codes', label: 'Promo Codes', icon: Tag },
 ];
 
 const AdminSidebar = () => {
