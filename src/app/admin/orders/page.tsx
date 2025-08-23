@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, addDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, addDoc, serverTimestamp, writeBatch, orderBy } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -46,7 +46,7 @@ const OrdersPage = () => {
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, "orders"), where("status", "==", "pending"));
+      const q = query(collection(db, "orders"), where("status", "==", "pending"), orderBy("createdAt", "desc"));
       const querySnapshot = await getDocs(q);
       const ordersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
       setOrders(ordersData);
