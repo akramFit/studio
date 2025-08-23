@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, getDoc, Timestamp, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, Timestamp, writeBatch, serverTimestamp, runTransaction } from 'firebase/firestore';
 
 const GetClientInputSchema = z.object({
   membershipCode: z.string().describe('The unique membership code for the client.'),
@@ -158,37 +158,48 @@ export async function createSubscriptionOrder(formData: z.infer<typeof Subscript
     try {
         const validatedData = SubscriptionFormSchema.parse(formData);
 
-        const batch = writeBatch(db);
+        await runTransaction(db, async (transaction) => {
+            const orderRef = doc(collection(db, 'orders'));
 
-        // 1. Create the order
-        const orderRef = doc(collection(db, 'orders'));
-        batch.set(orderRef, {
-            ...validatedData,
-            status: 'pending',
-            createdAt: serverTimestamp(),
+            // If a promo code is used, validate it and update its status within the transaction
+            if (validatedData.promoCode) {
+                const promoRef = doc(db, 'promoCodes', validatedData.promoCode.toUpperCase());
+                const promoDoc = await transaction.get(promoRef);
+
+                if (!promoDoc.exists()) {
+                    throw new Error("Promo code does not exist.");
+                }
+
+                if (promoDoc.data().status !== 'active') {
+                    throw new Error("Promo code has already been used.");
+                }
+
+                // Update the promo code status to 'used'
+                transaction.update(promoRef, {
+                    status: 'used',
+                    usedByOrderId: orderRef.id,
+                    usedAt: serverTimestamp(),
+                });
+            }
+
+            // Create the order
+            transaction.set(orderRef, {
+                ...validatedData,
+                status: 'pending',
+                createdAt: serverTimestamp(),
+            });
         });
 
-        // 2. If a promo code was used, update its status
-        if (validatedData.promoCode) {
-            const promoRef = doc(db, 'promoCodes', validatedData.promoCode.toUpperCase());
-            // We optimistically update the promo code. 
-            // If the code doesn't exist or is already used, this batch write won't fail,
-            // but the admin will see the order used an invalid code.
-            // A more robust solution would use a transaction, but this is simpler and often sufficient.
-            batch.update(promoRef, {
-                status: 'used',
-                usedByOrderId: orderRef.id,
-                usedAt: serverTimestamp(),
-            });
-        }
-
-        await batch.commit();
-
         return { success: true, message: "Application Sent! Akram will review it shortly." };
-    } catch (error) {
+
+    } catch (error: any) {
         console.error("Error creating subscription order:", error);
         if (error instanceof z.ZodError) {
             return { success: false, message: "Invalid form data provided." };
+        }
+        // Check for our custom promo code error messages
+        if (error.message.includes("Promo code")) {
+            return { success: false, message: error.message };
         }
         return { success: false, message: "Something went wrong. Please try again." };
     }
