@@ -114,13 +114,21 @@ export async function validatePromoCode(code: string): Promise<z.infer<typeof Va
             return { success: false, message: 'This promo code does not exist.' };
         }
 
-        const promoData = { id: docSnap.id, ...docSnap.data() } as PromoCode;
+        const promoData = docSnap.data();
 
         if (promoData.status !== 'active') {
             return { success: false, message: 'This promo code has already been used.' };
         }
         
-        return { success: true, promoCode: promoData, message: `Applied ${promoData.discountPercentage}% discount.` };
+        // Return a plain object with only the necessary, serializable fields
+        const safePromoCode = {
+            id: docSnap.id,
+            code: promoData.code,
+            discountPercentage: promoData.discountPercentage,
+            status: promoData.status,
+        };
+
+        return { success: true, promoCode: safePromoCode, message: `Applied ${safePromoCode.discountPercentage}% discount.` };
 
     } catch (error) {
         console.error("Error validating promo code:", error);
@@ -163,11 +171,17 @@ export async function createSubscriptionOrder(formData: z.infer<typeof Subscript
         // 2. If a promo code was used, update its status
         if (validatedData.promoCode) {
             const promoRef = doc(db, 'promoCodes', validatedData.promoCode.toUpperCase());
-            batch.update(promoRef, {
-                status: 'used',
-                usedByOrderId: orderRef.id,
-                usedAt: serverTimestamp(),
-            });
+            const promoDoc = await getDoc(promoRef); // Check if it exists and is active before batching
+            
+            if (promoDoc.exists() && promoDoc.data().status === 'active') {
+                 batch.update(promoRef, {
+                    status: 'used',
+                    usedByOrderId: orderRef.id,
+                    usedAt: serverTimestamp(),
+                });
+            } else {
+                 return { success: false, message: "The promo code is invalid or has already been used." };
+            }
         }
 
         await batch.commit();
