@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, getDoc, Timestamp, writeBatch, serverTimestamp, runTransaction } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, Timestamp, serverTimestamp, runTransaction } from 'firebase/firestore';
 
 const GetClientInputSchema = z.object({
   membershipCode: z.string().describe('The unique membership code for the client.'),
