@@ -31,7 +31,6 @@ const navItems = [
   { href: '/admin/gallery', label: 'Gallery', icon: GalleryHorizontal },
   { href: '/admin/achievements', label: 'Achievements', icon: Trophy },
   { href: '/admin/pricing', label: 'Pricing', icon: DollarSign },
-  { href: '/admin/database', label: 'Database', icon: Database },
 ];
 
 const AdminSidebar = () => {
