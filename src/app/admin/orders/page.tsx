@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, antd from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, addDoc, serverTimestamp, writeBatch, orderBy } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -37,15 +37,16 @@ interface Order {
 }
 
 const OrdersPage = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
+  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [actionLoading, setActionLoading] = React.useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = React.useCallback(async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, "orders"), where("status", "==", "pending"), orderBy("createdAt", "desc"));
+      // Removed the orderBy clause to prevent index-related errors
+      const q = query(collection(db, "orders"), where("status", "==", "pending"));
       const querySnapshot = await getDocs(q);
       const ordersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
       setOrders(ordersData);
@@ -56,7 +57,7 @@ const OrdersPage = () => {
     }
   }, [toast]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
   
@@ -91,7 +92,7 @@ const OrdersPage = () => {
                 description: `Subscription: ${order.fullName}`,
                 amount: order.finalPrice,
                 date: serverTimestamp(),
-                clientId: newClientRef.id,
+                clientId: newClient_ref.id,
             });
         }
         
