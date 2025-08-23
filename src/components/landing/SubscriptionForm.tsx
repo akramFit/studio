@@ -1,12 +1,12 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, getDocs, query, orderBy, where, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,7 +15,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { createSubscriptionOrder, validatePromoCode } from '@/app/actions';
+import type { PromoCode } from '@/app/actions';
+
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters."),
@@ -46,12 +48,6 @@ interface Plan {
     name: string;
     price: number;
 }
-interface PromoCode {
-    id: string;
-    code: string;
-    discountPercentage: number;
-    status: 'active' | 'used';
-}
 
 const durationOptions = [
     { value: 1, label: "1 Month", discount: 0 },
@@ -66,7 +62,6 @@ const SubscriptionForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [plans, setPlans] = React.useState<Plan[]>([]);
-  const [totalPrice, setTotalPrice] = React.useState<number | null>(null);
   const [promoCodeStatus, setPromoCodeStatus] = React.useState<'idle' | 'loading' | 'valid' | 'invalid'>('idle');
   const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
 
@@ -99,7 +94,7 @@ const SubscriptionForm = () => {
   const selectedPlanName = form.watch('preferredPlan');
   const selectedDuration = form.watch('subscriptionDuration');
 
-  React.useEffect(() => {
+  const totalPrice = useMemo(() => {
     if (selectedPlanName && selectedDuration && plans.length > 0) {
       const plan = plans.find(p => p.name === selectedPlanName);
       const durationInfo = durationOptions.find(d => d.value === selectedDuration);
@@ -108,11 +103,10 @@ const SubscriptionForm = () => {
         if (appliedPromo) {
             finalPrice = finalPrice * (1 - appliedPromo.discountPercentage / 100);
         }
-        setTotalPrice(Math.round(finalPrice));
+        return Math.round(finalPrice);
       }
-    } else {
-      setTotalPrice(null);
     }
+    return null;
   }, [selectedPlanName, selectedDuration, plans, appliedPromo]);
 
   const handleApplyPromoCode = async () => {
@@ -121,30 +115,15 @@ const SubscriptionForm = () => {
     setPromoCodeStatus('loading');
     setAppliedPromo(null);
 
-    try {
-        const promoRef = doc(db, 'promoCodes', code);
-        const docSnap = await getDoc(promoRef);
-        
-        if (!docSnap.exists()) {
-            setPromoCodeStatus('invalid');
-            toast({ title: "Invalid Code", description: "This promo code does not exist.", variant: "destructive" });
-            return;
-        }
+    const result = await validatePromoCode(code);
 
-        const promoData = { id: docSnap.id, ...docSnap.data() } as PromoCode;
-
-        if (promoData.status !== 'active') {
-            setPromoCodeStatus('invalid');
-            toast({ title: "Code Used", description: "This promo code has already been used.", variant: "destructive" });
-            return;
-        }
-        
+    if (result.success && result.promoCode) {
         setPromoCodeStatus('valid');
-        setAppliedPromo(promoData);
-        toast({ title: "Success!", description: `Applied ${promoData.discountPercentage}% discount.` });
-    } catch (error) {
+        setAppliedPromo(result.promoCode);
+        toast({ title: "Success!", description: result.message });
+    } else {
         setPromoCodeStatus('invalid');
-        toast({ title: "Error", description: "Could not validate promo code.", variant: "destructive" });
+        toast({ title: "Invalid Code", description: result.message, variant: "destructive" });
     }
   };
 
@@ -152,41 +131,37 @@ const SubscriptionForm = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      const dataToSubmit = { ...values };
-      if (dataToSubmit.primaryGoal !== 'other') {
-        delete dataToSubmit.otherGoal;
-      }
+        const dataToSubmit = { 
+            ...values,
+            finalPrice: totalPrice,
+            promoCode: appliedPromo ? appliedPromo.code : undefined,
+         };
+        if (dataToSubmit.primaryGoal !== 'other') {
+            delete dataToSubmit.otherGoal;
+        }
 
-      const orderRef = await addDoc(collection(db, 'orders'), {
-        ...dataToSubmit,
-        promoCode: appliedPromo ? appliedPromo.code : null,
-        finalPrice: totalPrice,
-        status: 'pending',
-        createdAt: serverTimestamp(),
-      });
-      
-      if (appliedPromo) {
-        const promoRef = doc(db, 'promoCodes', appliedPromo.id);
-        await updateDoc(promoRef, {
-            status: 'used',
-            usedByOrderId: orderRef.id,
-            usedAt: serverTimestamp(),
-        });
-      }
+      const result = await createSubscriptionOrder(dataToSubmit);
 
-      toast({
-        title: "Application Sent!",
-        description: "Thank you! Akram will review your application and get back to you shortly.",
-      });
-      form.reset();
-      setAppliedPromo(null);
-      setPromoCodeStatus('idle');
-      setTotalPrice(null);
+      if (result.success) {
+          toast({
+            title: "Application Sent!",
+            description: "Thank you! Akram will review your application and get back to you shortly.",
+          });
+          form.reset();
+          setAppliedPromo(null);
+          setPromoCodeStatus('idle');
+      } else {
+          toast({
+            title: "Submission Failed",
+            description: result.message,
+            variant: "destructive",
+          });
+      }
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error("Error submitting form: ", error);
       toast({
         title: "Submission Failed",
-        description: "Something went wrong. Please try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
