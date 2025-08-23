@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, User, Phone, Calendar, Dumbbell, ShieldAlert, Target } from 'lucide-react';
+import { ArrowLeft, User, Phone, Calendar, Dumbbell, ShieldAlert, Target, Cake, Rss, Weight } from 'lucide-react';
 import { format } from 'date-fns';
 import GoalManager from '@/components/admin/GoalManager';
 import ProgressLog from '@/components/admin/ProgressLog';
@@ -24,6 +24,9 @@ export interface Client {
     endDate: any;
     primaryGoal: string;
     notes: string;
+    age?: number;
+    height?: number;
+    weight?: number;
     // Goal fields
     currentGoalTitle?: string;
     targetMetric?: string;
@@ -117,7 +120,10 @@ const ClientDetailPage = () => {
                     <CardContent className="space-y-4 text-sm">
                         <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>{client.fullName}</span></div>
                         <div className="flex items-center gap-3"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{client.phoneNumber}</span></div>
-                        <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Plan: {client.plan}</span></div>
+                        {client.age && <div className="flex items-center gap-3"><Cake className="h-4 w-4 text-muted-foreground" /> <span>{client.age} years old</span></div>}
+                        {client.height && <div className="flex items-center gap-3"><Rss className="h-4 w-4 text-muted-foreground -rotate-90" /> <span>{client.height} cm</span></div>}
+                        {client.weight && <div className="flex items-center gap-3"><Weight className="h-4 w-4 text-muted-foreground" /> <span>{client.weight} kg</span></div>}
+                        <div className="flex items-center gap-3 pt-2 border-t"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Plan: {client.plan}</span></div>
                         <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Ends: {client.endDate ? format(client.endDate.toDate(), 'PPP') : 'N/A'}</span></div>
                         <div className="flex items-start gap-3"><Dumbbell className="h-4 w-4 text-muted-foreground mt-1" /> <span>Initial Goal: {client.primaryGoal.replace('_', ' ')}</span></div>
                         {client.notes && <div className="flex items-start gap-3 pt-2 border-t"><ShieldAlert className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" /> <p className="text-muted-foreground">{client.notes}</p></div>}
