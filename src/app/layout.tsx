@@ -5,6 +5,9 @@ import { Toaster } from '@/components/ui/toaster';
 export const metadata: Metadata = {
   title: 'Akram Fit Training',
   description: 'Personalized bodybuilding coaching by Akram.',
+  icons: {
+    icon: 'https://github.com/akramFit/Akram-Fit-Training-Assets/blob/main/favicon.png?raw=true',
+  },
 };
 
 export default function RootLayout({
