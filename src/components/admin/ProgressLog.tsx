@@ -1,12 +1,12 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
-import { BookMarked, Loader2, MessageSquarePlus, TrendingUp, TrendingDown, ShieldQuestion } from 'lucide-react';
+import { BookMarked, Loader2, MessageSquarePlus, TrendingUp, TrendingDown, ShieldQuestion, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 
 const logSchema = z.object({
@@ -84,6 +95,17 @@ const ProgressLog = ({ clientId }: ProgressLogProps) => {
       setIsSubmitting(false);
     }
   };
+  
+  const handleDelete = async (logId: string) => {
+    try {
+        const logRef = doc(db, 'clients', clientId, 'progressLogs', logId);
+        await deleteDoc(logRef);
+        toast({ title: "Success", description: "Log entry deleted." });
+    } catch (error) {
+        toast({ title: "Error", description: "Failed to delete log entry.", variant: "destructive" });
+    }
+  };
+
 
   return (
     <Card>
@@ -132,7 +154,7 @@ const ProgressLog = ({ clientId }: ProgressLogProps) => {
                     const config = categoryConfig[log.category as keyof typeof categoryConfig];
                     const Icon = config.icon;
                     return (
-                        <div key={log.id} className="flex items-start gap-4">
+                        <div key={log.id} className="group flex items-start gap-4">
                             <div className="flex flex-col items-center">
                                 <span className={cn("flex h-8 w-8 items-center justify-center rounded-full border", config.color)}>
                                     <Icon className="h-4 w-4" />
@@ -142,9 +164,30 @@ const ProgressLog = ({ clientId }: ProgressLogProps) => {
                             <div className="flex-1 pb-4">
                                <div className="flex items-center justify-between">
                                  <Badge variant="outline" className={cn("border", config.color)}>{config.label}</Badge>
-                                 <p className="text-xs text-muted-foreground">
-                                    {log.createdAt ? format(log.createdAt.toDate(), 'PPP') : '...'}
-                                 </p>
+                                 <div className="flex items-center gap-2">
+                                     <p className="text-xs text-muted-foreground">
+                                        {log.createdAt ? format(log.createdAt.toDate(), 'PPP') : '...'}
+                                     </p>
+                                     <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                           <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Trash2 className="h-3 w-3 text-red-500" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This will permanently delete this log entry. This action cannot be undone.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDelete(log.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                 </div>
                                </div>
                                 <p className="text-sm text-foreground mt-2">{log.note}</p>
                             </div>
