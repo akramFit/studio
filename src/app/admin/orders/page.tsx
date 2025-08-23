@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, antd from 'react';
+import React from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc, addDoc, serverTimestamp, writeBatch, orderBy } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -92,7 +92,7 @@ const OrdersPage = () => {
                 description: `Subscription: ${order.fullName}`,
                 amount: order.finalPrice,
                 date: serverTimestamp(),
-                clientId: newClient_ref.id,
+                clientId: newClientRef.id,
             });
         }
         
