@@ -15,6 +15,7 @@ import {
   Inbox,
   Banknote,
   Calendar,
+  Database,
 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -30,6 +31,7 @@ const navItems = [
   { href: '/admin/gallery', label: 'Gallery', icon: GalleryHorizontal },
   { href: '/admin/achievements', label: 'Achievements', icon: Trophy },
   { href: '/admin/pricing', label: 'Pricing', icon: DollarSign },
+  { href: '/admin/database', label: 'Database', icon: Database },
 ];
 
 const AdminSidebar = () => {
