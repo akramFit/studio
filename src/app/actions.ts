@@ -162,7 +162,7 @@ export async function createSubscriptionOrder(formData: z.infer<typeof Subscript
             const orderRef = doc(collection(db, 'orders'));
 
             // If a promo code is used, validate it and update its status within the transaction
-            if (validatedData.promoCode) {
+            if (validatedData.promoCode && validatedData.promoCode.trim() !== '') {
                 const promoRef = doc(db, 'promoCodes', validatedData.promoCode.toUpperCase());
                 const promoDoc = await transaction.get(promoRef);
 
