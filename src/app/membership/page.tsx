@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, User, Calendar, ShieldCheck, Clock, Target, PauseCircle, Link as LinkIcon, Barbell, Apple } from 'lucide-react';
+import { Loader2, User, Calendar, ShieldCheck, Clock, Target, PauseCircle, Link as LinkIcon, Dumbbell, Apple } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
@@ -164,7 +164,7 @@ const MembershipPage = () => {
                                             {clientInfo.trainingProgramUrl && (
                                                 <Button asChild className="flex-1" variant="secondary">
                                                     <Link href={clientInfo.trainingProgramUrl} target="_blank" rel="noopener noreferrer">
-                                                        <Barbell className="mr-2 h-4 w-4" /> Training Program
+                                                        <Dumbbell className="mr-2 h-4 w-4" /> Training Program
                                                     </Link>
                                                 </Button>
                                             )}
