@@ -41,7 +41,7 @@ const MembershipPage = () => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>>) => {
     setIsLoading(true);
     setClientInfo(null);
     try {
@@ -155,14 +155,14 @@ const MembershipPage = () => {
                                         </h3>
                                         <div className="flex flex-col sm:flex-row gap-4">
                                             {clientInfo.nutritionPlanUrl && (
-                                                <Button asChild className="flex-1">
+                                                <Button asChild className="flex-1 bg-green-600 hover:bg-green-700">
                                                     <Link href={clientInfo.nutritionPlanUrl} target="_blank" rel="noopener noreferrer">
                                                         <Apple className="mr-2 h-4 w-4" /> Nutrition Plan
                                                     </Link>
                                                 </Button>
                                             )}
                                             {clientInfo.trainingProgramUrl && (
-                                                <Button asChild className="flex-1" variant="secondary">
+                                                <Button asChild className="flex-1 bg-red-600 hover:bg-red-700">
                                                     <Link href={clientInfo.trainingProgramUrl} target="_blank" rel="noopener noreferrer">
                                                         <Dumbbell className="mr-2 h-4 w-4" /> Training Program
                                                     </Link>
