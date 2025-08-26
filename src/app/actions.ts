@@ -25,6 +25,8 @@ const GetClientOutputSchema = z.object({
     targetValue: z.string().optional(),
     targetDate: z.string().optional(), // Send as ISO string
     schedule: z.array(ClientScheduleSchema).optional(),
+    nutritionPlanUrl: z.string().url().optional(),
+    trainingProgramUrl: z.string().url().optional(),
 });
 
 export type GetClientInput = z.infer<typeof GetClientInputSchema>;
@@ -80,6 +82,8 @@ export async function getClientByMembershipCode(input: GetClientInput): Promise<
         targetValue: clientData.targetValue,
         targetDate: targetDate,
         schedule: clientSchedule,
+        nutritionPlanUrl: clientData.nutritionPlanUrl,
+        trainingProgramUrl: clientData.trainingProgramUrl,
     };
 }
 

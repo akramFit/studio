@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, User, Calendar, ShieldCheck, Clock, Target, PauseCircle } from 'lucide-react';
+import { Loader2, User, Calendar, ShieldCheck, Clock, Target, PauseCircle, Link as LinkIcon, Barbell, Apple } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { getClientByMembershipCode } from '@/app/actions'; // Import the new Server Action
 import type { GetClientOutput } from '@/app/actions'; // Import the type
+import Link from 'next/link';
 
 const formSchema = z.object({
   membershipCode: z.string().min(6, "Membership code is required."),
@@ -143,6 +144,34 @@ const MembershipPage = () => {
                                     </div>
                                 )}
                             </div>
+                            
+                            {(clientInfo.nutritionPlanUrl || clientInfo.trainingProgramUrl) && (
+                                <>
+                                    <Separator className="my-6" />
+                                    <div className="space-y-3">
+                                        <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                                            <LinkIcon className="h-5 w-5" />
+                                            Your Resources
+                                        </h3>
+                                        <div className="flex flex-col sm:flex-row gap-4">
+                                            {clientInfo.nutritionPlanUrl && (
+                                                <Button asChild className="flex-1">
+                                                    <Link href={clientInfo.nutritionPlanUrl} target="_blank" rel="noopener noreferrer">
+                                                        <Apple className="mr-2 h-4 w-4" /> Nutrition Plan
+                                                    </Link>
+                                                </Button>
+                                            )}
+                                            {clientInfo.trainingProgramUrl && (
+                                                <Button asChild className="flex-1" variant="secondary">
+                                                    <Link href={clientInfo.trainingProgramUrl} target="_blank" rel="noopener noreferrer">
+                                                        <Barbell className="mr-2 h-4 w-4" /> Training Program
+                                                    </Link>
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                             
                             {clientInfo.currentGoalTitle && (
                                 <>

@@ -13,6 +13,7 @@ import { ArrowLeft, User, Phone, Calendar, Dumbbell, ShieldAlert, Target, Cake, 
 import { format } from 'date-fns';
 import GoalManager from '@/components/admin/GoalManager';
 import ProgressLog from '@/components/admin/ProgressLog';
+import ClientResources from '@/components/admin/ClientResources';
 
 export interface Client {
     id: string;
@@ -32,6 +33,9 @@ export interface Client {
     targetMetric?: string;
     targetValue?: string;
     targetDate?: any;
+    // Resource links
+    nutritionPlanUrl?: string;
+    trainingProgramUrl?: string;
 }
 
 const ClientDetailPage = () => {
@@ -70,7 +74,7 @@ const ClientDetailPage = () => {
         fetchClient();
     }, [fetchClient]);
     
-    const handleGoalUpdate = () => {
+    const handleUpdate = () => {
         fetchClient(true); // Re-fetch data without showing main loader
     };
 
@@ -130,7 +134,8 @@ const ClientDetailPage = () => {
                     </CardContent>
                 </Card>
                 <div className="md:col-span-2 space-y-6">
-                    <GoalManager client={client} onGoalUpdate={handleGoalUpdate} />
+                    <GoalManager client={client} onGoalUpdate={handleUpdate} />
+                    <ClientResources client={client} onUpdate={handleUpdate} />
                     <ProgressLog clientId={client.id} />
                 </div>
             </div>
